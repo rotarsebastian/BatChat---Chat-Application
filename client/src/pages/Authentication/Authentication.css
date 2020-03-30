@@ -1,0 +1,76 @@
+/* Authentication Page */
+.auth-container {
+	max-width: 500px;
+	margin: 80px auto;
+	color: #fff;
+}
+
+.auth-header {
+	padding: 15px;
+	text-align: center;
+	padding: 20px;
+	background: var(--dark-color-a);
+	border-top-left-radius: var(--border-radius);
+	border-top-right-radius: var(--border-radius);
+}
+
+.auth-main {
+	padding: 30px 40px;
+	background: var(--dark-color-b);
+	border-bottom-right-radius: var(--border-radius);
+	border-bottom-left-radius: var(--border-radius);
+}
+
+.auth-main p {
+	margin-bottom: 20px;
+}
+
+.auth-main .form-control {
+	margin-bottom: 10px;
+}
+
+.auth-main label {
+	display: block;
+	margin-bottom: 5px;
+}
+
+.auth-main input {
+	font-size: 16px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+	border-radius: var(--border-radius);
+	padding-left: 10px;
+	margin-bottom: 15px;
+}
+
+.auth-main input[type='password'] {
+	text-transform: none;
+}
+
+.auth-main select {
+	font-size: 16px;
+	padding: 5px;
+	height: 40px;
+	width: 100%;
+}
+
+.auth-main .btn {
+	margin-top: 20px;
+	width: 100%;
+	border-radius: var(--border-radius);
+}
+
+.auth-switch-page {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.auth-switch-page span {
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.auth-switch-page span:hover {
+    text-decoration: underline;
+}
