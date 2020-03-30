@@ -31,7 +31,14 @@ class ChatRoom extends Component {
             socket.emit('checkToken', { token } );
             socket.on('authorized', ({ status, username }) => {
                 if(status === 1) {
-                    const { room } = this.props.location.state;
+                    let room = undefined;
+                    // QUICKFIX (change this)
+                    if(room === undefined) { 
+                        // If no room set room to default JavaScript room
+                        room = 'JavaScript';
+                    } else {
+                        room = this.props.location.state.room;
+                    }
                     // Join chat room
                     socket.emit('joinRoom', { username, room });  
                     // Get room and users
