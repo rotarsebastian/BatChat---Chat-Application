@@ -10,17 +10,10 @@ const register = async(username, password, email) => {
             json: true 
         };
         const response = await request(options);
-        const { status } = response;
-        console.log(response);
-        if(status === 0) {
-            console.log('Unable to register user!');
-            return false;
-        } else {
-            return true;
-        }
+        return response;
     }
     catch(err) {
-        return console.log('Unable to connect to location service!', err);
+        return console.log('Server under maintanence!', err);
     }
 };
 

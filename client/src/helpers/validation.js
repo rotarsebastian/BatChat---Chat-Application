@@ -1,25 +1,29 @@
-export const validateForm = (formElements) => {
+export const validateForm = (formElements, form) => {
     let formIsValid = true;
     formElements.forEach(input => {
-        if(!validateInput(input.type, input.val)) {
+        if(!validateInputValue(input.type, input.val)) {
             formIsValid = false;
-            console.log(`${input.type} with value ${input.val} is not valid`);
-            // showError(inputType);
+            showError(input.type, form);
         }
     });
     return formIsValid ? true : false;
 }
 
-export const validateInput = (type, value) => {
+export const validateInputValue = (type, value) => {
     switch (type) {
         case 'username':
             return value.length >= 6 && value.length <= 20 && /^[a-zA-Z]+$/.test(value);
         case 'password':
             return value.length >= 6 && value.length <= 50;
         case 'email':
-            return /\S+@\S+\.\S+/.test(value);
+            return /@.+\.[A-Za-z]{2,}$/.test(value);
         default:
             console.log(`Validation failed! No validation for ${type}!`);
         break;
     }
+}
+
+const showError = (type, form) => {
+    form.querySelector(`#${type}`).classList.add('error');
+    form.querySelector(`#${type}`).previousSibling.lastChild.classList.add('error');
 }

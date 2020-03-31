@@ -30,8 +30,19 @@
 }
 
 .auth-main label {
-	display: block;
+	display: flex;
+	justify-content: space-between;
 	margin-bottom: 5px;
+}
+
+.auth-main label span {
+	font-size: 12px;
+	font-weight: 400;
+	margin-right: 4px;
+}
+
+.auth-main label span.error {
+	color: #ff9800;
 }
 
 .auth-main input {
@@ -42,6 +53,22 @@
 	border-radius: var(--border-radius);
 	padding-left: 10px;
 	margin-bottom: 15px;
+}
+
+.auth-main input.error {
+	border: 2px solid #ff9800;
+}
+
+.auth-main .verification {
+	display: none;
+	position: absolute;
+    color: #667aff;
+    margin-left: -28px;
+    margin-top: 12px;
+}
+
+.auth-main .verification.valid {
+	display: inline-flex;
 }
 
 .auth-main input[type='password'] {

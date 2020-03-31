@@ -44,6 +44,7 @@ input[type='text'], input[type='password'] , select {
 	color: var(--dark-color-a);
 	border: 0;
 	font-size: 17px;
+	outline: none;
 }
 
 ::-webkit-input-placeholder { /* Edge */

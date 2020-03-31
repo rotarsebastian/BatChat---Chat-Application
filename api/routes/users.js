@@ -42,14 +42,14 @@ router.post('/login', (req, res) => {
     const isValid = validate(form);
 
     if(!isValid) {
-        return res.send({ status: 0, message: 'Invalid form', code: 11 });
+        return res.send({ status: 0, message: 'Invalid form', code: 21 });
     }
     const [ username, password ] = form;
 
     // Match user
     User.findOne({ username: username.val })
     .then(user => {
-        if(!user) { return res.send({ status: 0, message: 'User does not exist', code: 13 }); }
+        if(!user) { return res.send({ status: 0, message: 'User does not exist', code: 22 }); }
 
         // Match password
         bcrypt.compare(password.val, user.password, (err, isMatch) => {
@@ -59,7 +59,7 @@ router.post('/login', (req, res) => {
                 const accessToken = jwt.sign({ username: user.username }, accessTokenSecret);
                 return res.send({ status: 1, message: 'User logged in', token: accessToken, code: 200 });
             } else {
-                return res.send({ status: 0, message: 'Incorrent password', code: 14 });
+                return res.send({ status: 0, message: 'Incorrent password', code: 23 });
             }
         });
     })
