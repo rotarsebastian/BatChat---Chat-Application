@@ -4,20 +4,20 @@ import register from '../../helpers/register';
 import './Authentication.css';
 import { validateForm, validateInputValue } from '../../helpers/validation';
 
+const initialState = {
+    username: { type: 'username', val: '' },
+    room: 'JavaScript',
+    password: { type: 'password', val: '' },
+    rePassword: { type: 'password', val: '' },
+    email: { type: 'email', val: '' },
+    isRegisterPage: false
+};
 class Authentication extends Component {
 
     constructor(props) {
         super(props);
         this.formEl = React.createRef();
-    }
-
-    state = {
-        username: { type: 'username', val: '' },
-        room: 'JavaScript',
-        password: { type: 'password', val: '' },
-        rePassword: { type: 'password', val: '' },
-        email: { type: 'email', val: '' },
-        isRegisterPage: false
+        this.state = initialState;
     }
 
     componentDidMount() {
@@ -25,8 +25,10 @@ class Authentication extends Component {
     }
 
     handleChange = e => {
+        const { isRegisterPage } = this.state;
         const { name: type, value: newValue } = e.target;
-        this.validateInput(e, type, newValue);
+        if(type !== 'room') this.validateInput(e, type, newValue);
+        isRegisterPage ? this.showValidButton(4) : this.showValidButton(2);
         this.updateInputState(type, newValue);
     }
 
@@ -52,7 +54,8 @@ class Authentication extends Component {
         if(isFormValid) {
             const res = await register(username, password, email);
             if(res.status === 1) {
-                this.setState({ isRegisterPage: false });
+                this.clearInputs();
+                this.setState({ ...initialState, username: { type: username.type, val: username.val } });
                 return false;
             } else {
                 this.handleServerRes(res);
@@ -82,6 +85,33 @@ class Authentication extends Component {
         // Handle errors toastr redux
         console.log(res);
         if(res.code === 12) {}
+    }
+
+    clearInputs = () => {
+        const elToBeCleaned = Array.from(this.formEl.current.querySelectorAll('.valid'));
+        elToBeCleaned.map(el => el.previousSibling.id !== 'username' ? el.classList.remove('valid') : undefined);
+    }
+
+    showValidButton = validInputs => {
+        const allValidEl = Array.from(this.formEl.current.querySelectorAll('.verification.valid')).length;
+        const formButtonClasses = this.formEl.current.lastChild.classList;
+
+        if(allValidEl === validInputs) formButtonClasses.add('valid');
+            else formButtonClasses.remove('valid');
+    }
+
+    switchPageHandler = () => {
+        const { isRegisterPage } = this.state;
+        const formButtonClasses = this.formEl.current.lastChild.classList;
+        if(isRegisterPage) {
+            const { username, password } = this.state;
+            const isValidForm = validateForm([username, password], this.formEl.current, true);
+            if(isValidForm) formButtonClasses.add('valid');
+            this.setState({isRegisterPage: false})
+        }  else { 
+            formButtonClasses.remove('valid');
+            this.setState({isRegisterPage: true});
+        }
     }
 
     validateInput = (e, type, newValue) => {
@@ -169,14 +199,14 @@ class Authentication extends Component {
                 <main className="auth-main">
                     <form onSubmit={this.handleSubmit} ref={this.formEl}>
                         <div className="form-control">
-                            <label htmlFor="username">Username <span>minimum 6 letters</span></label>
+                            <label htmlFor="username">Username <span>minimum 6 characters</span></label>
                             <input
                                 type="text"
                                 name="username"
                                 id="username"
                                 value={username.val}
                                 onChange={this.handleChange}
-                                onKeyPress={(e) => !(/[a-z]/i.test(e.key)) ? e.preventDefault() : undefined}
+                                onKeyPress={(e) => !(/^[aA-zZ0-9-]+$/g.test(e.key)) ? e.preventDefault() : undefined}
                                 maxLength="20"
                                 placeholder="Enter username..."
                                 
@@ -225,9 +255,9 @@ class Authentication extends Component {
                     </form>
                     { isRegisterPage 
                         ? 
-                        <div className="auth-switch-page">Already have an account? <span onClick={() => this.state.isRegisterPage ? this.setState({isRegisterPage: false}) : this.setState({isRegisterPage: true})}>Log in here</span></div>
+                        <div className="auth-switch-page">Already have an account? <span onClick={this.switchPageHandler}>Log in here</span></div>
                         :
-                        <div className="auth-switch-page">Don't have an account yet? <span onClick={() => this.state.isRegisterPage ? this.setState({isRegisterPage: false}) : this.setState({isRegisterPage: true})}>Sign up here</span></div> 
+                        <div className="auth-switch-page">Don't have an account yet? <span onClick={this.switchPageHandler}>Sign up here</span></div> 
                     }
                 </main>
 		    </div>

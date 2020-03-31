@@ -1,7 +1,7 @@
 const validateInput = (type, value) => {
     switch (type) {
         case 'username':
-            return value.length >= 6 && value.length <= 20 && /^[a-zA-Z]+$/.test(value);
+            return value.length >= 6 && value.length <= 20 && /^[a-zA-Z0-9_.-]*$/.test(value);
         case 'password':
             return value.length >= 6 && value.length <= 50;
         case 'email':

@@ -4,7 +4,8 @@
 	--dark-color-a: #667aff;
 	--dark-color-b: #7386ff;
 	--light-color: #e6e9ff;
-	--error-color: #d9534f;
+	--enabled-color: #ffb446;
+	--error-color: #ff9800;
 	--bot-color: #67d44c;
 	--border-radius: 4px;
 }

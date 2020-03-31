@@ -42,7 +42,7 @@
 }
 
 .auth-main label span.error {
-	color: #ff9800;
+	color: var(--error-color);;
 }
 
 .auth-main input {
@@ -55,8 +55,12 @@
 	margin-bottom: 15px;
 }
 
+.auth-main input:focus {
+	box-shadow: 3px 3px 0 rgba(32,33,36,.28);
+}
+
 .auth-main input.error {
-	border: 2px solid #ff9800;
+	border: 2px solid var(--error-color);
 }
 
 .auth-main .verification {
@@ -86,6 +90,12 @@
 	margin-top: 20px;
 	width: 100%;
 	border-radius: var(--border-radius);
+}
+
+.auth-main .btn.valid {
+	background: var(--enabled-color);
+	font-weight: 400;
+	color: #fff
 }
 
 .auth-switch-page {

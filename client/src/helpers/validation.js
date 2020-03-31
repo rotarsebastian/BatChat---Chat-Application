@@ -1,9 +1,9 @@
-export const validateForm = (formElements, form) => {
+export const validateForm = (formElements, form, showNoError) => {
     let formIsValid = true;
     formElements.forEach(input => {
         if(!validateInputValue(input.type, input.val)) {
             formIsValid = false;
-            showError(input.type, form);
+            if(!showNoError) showError(input.type, form);
         }
     });
     return formIsValid ? true : false;
@@ -12,7 +12,7 @@ export const validateForm = (formElements, form) => {
 export const validateInputValue = (type, value) => {
     switch (type) {
         case 'username':
-            return value.length >= 6 && value.length <= 20 && /^[a-zA-Z]+$/.test(value);
+            return value.length >= 6 && value.length <= 20 && /^[a-zA-Z0-9_.-]*$/.test(value);
         case 'password':
             return value.length >= 6 && value.length <= 50;
         case 'email':
