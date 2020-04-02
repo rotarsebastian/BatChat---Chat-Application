@@ -71,17 +71,18 @@ class Authentication extends Component {
         if(isFormValid) {
             const res = await login(username, password);
             if(res.status === 1) {
+                console.log(res);
                 localStorage.setItem('userToken', res.token);
                 return false;
             } else {
-                this.handleServerRes(res);
+                this.handleServerErrors(res);
                 // SHOW ERRORS
                 return true;
             } 
         } else return true;
     }
 
-    handleServerRes = res => {
+    handleServerErrors = res => {
         // Handle errors toastr redux
         console.log(res);
         if(res.code === 12) {}

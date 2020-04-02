@@ -6,15 +6,18 @@ const bcrypt = require('bcryptjs');
 
 router.post('/register', (req, res) => {
     const form = [...req.body];
-    const isValid = validate(form);
+    const result = validate(form);
 
-    if(!isValid) {
-        return res.send({ status: 0, message: 'Invalid form', code: 11 });
-    }
+    if(result.status === 0) return res.send({ status: 0, invalids: result.invalidInputs, code: 11 });
+
     const [ username, password, email ] = form;
     User.findOne({ $or: [ { email : email.val }, { username: username.val }] })
         .then(user => {
-            if(user) { return res.send({ status: 0, message: 'username or email is already taken', code: 12 }); }
+            if(user) { 
+                if(user.email === email.val && user.username === username.val) return res.send({ status: 0, message: 'both email and username are already taken', code: 13 }); 
+                if(user.email === email.val) return res.send({ status: 0, message: 'email is already taken', code: 14 }); 
+                if(user.username === username.val) return res.send({ status: 0, message: 'username is already taken', code: 15 }); 
+            }
             const newUser = new User({
                 username: username.val,
                 password: password.val,
@@ -38,12 +41,12 @@ router.post('/register', (req, res) => {
 
 // Login Handle
 router.post('/login', (req, res) => {
+    console.log(req.body);
     const form = [...req.body];
-    const isValid = validate(form);
+    const result = validate(form);
 
-    if(!isValid) {
-        return res.send({ status: 0, message: 'Invalid form', code: 21 });
-    }
+    if(result.status === 0) return res.send({ status: 0, invalids: result.invalidInputs, code: 11 })
+
     const [ username, password ] = form;
 
     // Match user

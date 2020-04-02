@@ -12,16 +12,17 @@ const validateInput = (type, value) => {
     }
 }
 
-const validateForm = (formElements) => {
+const validateForm = form => {
     let formIsValid = true;
-    formElements.forEach(input => {
+    let invalidInputs = [];
+    form.map(input => {
         if(!validateInput(input.type, input.val)) {
             formIsValid = false;
             console.log(`${input.type} with value ${input.val} is not valid`);
-            // showError(inputType);
+            invalidInputs.push(input.type);
         }
     });
-    return formIsValid ? true : false;
+    return formIsValid ? { status: 1 } : { status: 0, invalidInputs };
 }
 
 module.exports = validateForm;
