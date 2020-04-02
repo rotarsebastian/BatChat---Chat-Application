@@ -14,9 +14,9 @@ router.post('/register', (req, res) => {
     User.findOne({ $or: [ { email : email.val }, { username: username.val }] })
         .then(user => {
             if(user) { 
-                if(user.email === email.val && user.username === username.val) return res.send({ status: 0, message: 'both email and username are already taken', code: 13 }); 
-                if(user.email === email.val) return res.send({ status: 0, message: 'email is already taken', code: 14 }); 
-                if(user.username === username.val) return res.send({ status: 0, message: 'username is already taken', code: 15 }); 
+                if(user.email === email.val && user.username === username.val) return res.send({ status: 0, message: 'Email and username are already taken!', code: 12 }); 
+                if(user.username === username.val) return res.send({ status: 0, message: 'Username is already taken!', code: 13 }); 
+                if(user.email === email.val) return res.send({ status: 0, message: 'Email is already taken!', code: 14 }); 
             }
             const newUser = new User({
                 username: username.val,
@@ -41,7 +41,6 @@ router.post('/register', (req, res) => {
 
 // Login Handle
 router.post('/login', (req, res) => {
-    console.log(req.body);
     const form = [...req.body];
     const result = validate(form);
 
@@ -52,7 +51,7 @@ router.post('/login', (req, res) => {
     // Match user
     User.findOne({ username: username.val })
     .then(user => {
-        if(!user) { return res.send({ status: 0, message: 'User does not exist', code: 22 }); }
+        if(!user) { return res.send({ status: 0, message: 'Incorrent username!', code: 15 }); }
 
         // Match password
         bcrypt.compare(password.val, user.password, (err, isMatch) => {
@@ -62,7 +61,7 @@ router.post('/login', (req, res) => {
                 const accessToken = jwt.sign({ username: user.username }, accessTokenSecret);
                 return res.send({ status: 1, message: 'User logged in', token: accessToken, code: 200 });
             } else {
-                return res.send({ status: 0, message: 'Incorrent password', code: 23 });
+                return res.send({ status: 0, message: 'Incorrent password', code: 16 });
             }
         });
     })

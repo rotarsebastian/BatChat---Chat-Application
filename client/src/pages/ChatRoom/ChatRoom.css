@@ -101,7 +101,7 @@ header .btn {
 
 .chat-form-container {
 	padding: 20px 30px;
-	background-color: var(--dark-color-a);
+	background: var(--dark-color-a);
 	border-bottom-right-radius: var(--border-radius);
     border-bottom-left-radius: var(--border-radius);
 }

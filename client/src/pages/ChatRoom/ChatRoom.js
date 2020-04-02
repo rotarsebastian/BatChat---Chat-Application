@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Parser from 'html-react-parser';
-import openSocket from "socket.io-client";
+import openSocket from 'socket.io-client';
+import capitalize from '../../helpers/capitalize';
+
 import './ChatRoom.css';
 
 class ChatRoom extends Component {
@@ -33,12 +35,8 @@ class ChatRoom extends Component {
                 if(status === 1) {
                     let room = undefined;
                     // QUICKFIX (change this)
-                    if(room === undefined) { 
-                        // If no room set room to default JavaScript room
-                        room = 'JavaScript';
-                    } else {
-                        room = this.props.location.state.room;
-                    }
+                    if(room === undefined) room = 'JavaScript'; // If no room set room to default JavaScript room
+                       else room = this.props.location.state.room;
                     // Join chat room
                     socket.emit('joinRoom', { username, room });  
                     // Get room and users
@@ -63,11 +61,6 @@ class ChatRoom extends Component {
         }
     }
 
-    // Capitalize names
-    capitalize = name => {
-        return name.charAt(0).toUpperCase() + name.slice(1);
-    }
-
     handleChange = e => {
         const { value: newValue } = e.target;
         this.setState({sendMessage: newValue});
@@ -77,7 +70,7 @@ class ChatRoom extends Component {
         e.preventDefault();
         const { sendMessage, socket } = this.state;
         // Emit message to server
-        socket.emit('chatMessage', this.capitalize(sendMessage));
+        socket.emit('chatMessage', capitalize(sendMessage));
         this.setState({sendMessage: ''});
         e.target.firstChild.focus();
     }

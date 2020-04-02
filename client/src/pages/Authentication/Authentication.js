@@ -3,6 +3,7 @@ import login from '../../helpers/login';
 import register from '../../helpers/register';
 import './Authentication.css';
 import { validateForm, validateInputValue } from '../../helpers/validation';
+import capitalize from '../../helpers/capitalize';
 
 const initialState = {
     username: { type: 'username', val: '' },
@@ -42,8 +43,8 @@ class Authentication extends Component {
 
         if(!areThereErrors) {
             console.log('Good To Go!')
-            // const { history } = this.props;
-            // history.push('/chatRoom', { username: username.val, room });
+            const { history } = this.props;
+            history.push('/chatRoom', { room });
         }
     }
 
@@ -58,8 +59,7 @@ class Authentication extends Component {
                 this.setState({ ...initialState, username: { type: username.type, val: username.val } });
                 return false;
             } else {
-                this.handleServerRes(res);
-                // SHOW ERRORS
+                this.handleServerErrors(res);
                 return true;
             } 
         } else return true;
@@ -76,16 +76,31 @@ class Authentication extends Component {
                 return false;
             } else {
                 this.handleServerErrors(res);
-                // SHOW ERRORS
                 return true;
             } 
         } else return true;
     }
 
     handleServerErrors = res => {
-        // Handle errors toastr redux
-        console.log(res);
-        if(res.code === 12) {}
+        if(res.code === 11) this.showServerErrors(res.invalids, res); // REGISTRATION / LOGIN - Validation failed!
+            else if(res.code === 12) this.showServerErrors(['username', 'email'], res);  // REGISTRATION - Both email and username are already used!
+            else if(res.code === 13 || res.code === 15) this.showServerErrors(['username'], res); // REGISTRATION - Username is already used! ---- LOGIN - Incorrect username!
+            else if(res.code === 14) this.showServerErrors(['email'], res); // REGISTRATION - Email is already used!
+            else if(res.code === 16) this.showServerErrors(['password'], res); // LOGIN - Incorrect pass!
+
+    }
+
+    showServerErrors = (invalidInputs, res) => {
+        invalidInputs.map(el => {
+            const element = this.formEl.current.querySelector(`#${el}`);
+            element.classList.add('error');
+            element.previousSibling.lastChild.classList.add('error');
+        });
+
+        // Adding messages to toastr
+        //TODO: // Handle errors toastr redux
+        if(res.hasOwnProperty('invalids')) console.log(`${capitalize(invalidInputs.join(', '))} are not valid!`);
+            else console.log(capitalize(res.message));
     }
 
     clearInputs = () => {
@@ -178,7 +193,7 @@ class Authentication extends Component {
     render () {
         const { room, username, password, rePassword, isRegisterPage, email } = this.state;
         let showRooms, pageName = null;
-        if(!isRegisterPage) pageName = 'Login'
+        if(!isRegisterPage) pageName = 'Login';
         return (
             <div className="auth-container">
                 <header className="auth-header">
