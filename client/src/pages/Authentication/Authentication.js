@@ -176,27 +176,16 @@ class Authentication extends Component {
 
     render () {
         const { room, username, password, rePassword, isRegisterPage, email } = this.state;
-        let showRooms = null;
-        if(!isRegisterPage) {
-            showRooms =                         
-                <div className="form-control">
-                    <label htmlFor="room">Room</label>
-                    <select name="room" id="room" value={room} onChange={this.handleChange}>
-                        <option value="JavaScript">JavaScript</option>
-                        <option value="Python">Python</option>
-                        <option value="PHP">PHP</option>
-                        <option value="C#">C#</option>
-                        <option value="Ruby">Ruby</option>
-                        <option value="Java">Java</option>
-                    </select>
-                </div>;
-        }
+        let showRooms, pageName = null;
+        if(!isRegisterPage) pageName = 'Login'
         return (
             <div className="auth-container">
                 <header className="auth-header">
                     <h1><i className="fas fa-comments"></i> BatChat</h1>
+                    <p className="motto">Secured messages. No Ads.</p>
                 </header>
                 <main className="auth-main">
+                    <h3 className="page-name">{pageName ? pageName : 'Register'}</h3>
                     <form onSubmit={this.handleSubmit} ref={this.formEl}>
                         <div className="form-control">
                             <label htmlFor="username">Username <span>minimum 6 characters</span></label>

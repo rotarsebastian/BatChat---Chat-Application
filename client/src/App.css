@@ -1,9 +1,11 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 
 :root {
-	--dark-color-a: #667aff;
-	--dark-color-b: #7386ff;
+	--dark-color-a: linear-gradient(to bottom, #0080ff 5%, #008ecc 95%);
+	--dark-color-b: linear-gradient(#008ecc, #0080ff);
 	--light-color: #e6e9ff;
+	--blue-1: #0f52ba;
+	--blue-2: #008ecc;
 	--enabled-color: #ffb446;
 	--error-color: #ff9800;
 	--bot-color: #67d44c;
@@ -15,7 +17,7 @@
 	margin: 0;
 	padding: 0;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-	font-weight: 200;
+	font-weight: 300;
 }
 
 body {
@@ -42,20 +44,23 @@ input[type='text'], input[type='password'] , select {
 	cursor: pointer;
 	padding: 5px 15px;
 	background: var(--light-color);
-	color: var(--dark-color-a);
+	color: var(--blue-1);
 	border: 0;
 	font-size: 17px;
 	outline: none;
 }
 
 ::-webkit-input-placeholder { /* Edge */
-    text-transform: none;
+	text-transform: none;
+	color: rgb(119, 119, 119);
 }
 
 :-ms-input-placeholder { /* Internet Explorer 10-11 */
-    text-transform: none;
+	text-transform: none;
+	color: rgb(119, 119, 119);
 }
 
 ::placeholder {
-    text-transform: none;
+	text-transform: none;
+	color: rgb(119, 119, 119);
 }
