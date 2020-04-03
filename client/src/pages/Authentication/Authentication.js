@@ -42,9 +42,13 @@ class Authentication extends Component {
           else areThereErrors = await this.handleLogin(e);
 
         if(!areThereErrors) {
-            console.log('Good To Go!')
-            const { history } = this.props;
-            history.push('/chatRoom', { room });
+            console.log('Good To Go!');
+            if(isRegisterPage) this.setState( {isRegisterPage: false} );
+                else {
+                    const { history } = this.props;
+                    history.push('/chatRoom', { room });
+                }
+            
         }
     }
 
@@ -91,7 +95,7 @@ class Authentication extends Component {
     }
 
     showServerErrors = (invalidInputs, res) => {
-        invalidInputs.map(el => {
+        invalidInputs.forEach(el => {
             const element = this.formEl.current.querySelector(`#${el}`);
             element.classList.add('error');
             element.previousSibling.lastChild.classList.add('error');
@@ -119,14 +123,16 @@ class Authentication extends Component {
     switchPageHandler = () => {
         const { isRegisterPage } = this.state;
         const formButtonClasses = this.formEl.current.lastChild.classList;
+        const elToBeCleaned = Array.from(this.formEl.current.querySelectorAll('.error, .valid'));
+        elToBeCleaned.map(el => el.classList.remove('error', 'valid'));
         if(isRegisterPage) {
             const { username, password } = this.state;
             const isValidForm = validateForm([username, password], this.formEl.current, true);
             if(isValidForm) formButtonClasses.add('valid');
-            this.setState({isRegisterPage: false})
+            this.setState({...initialState, isRegisterPage: false});
         }  else { 
             formButtonClasses.remove('valid');
-            this.setState({isRegisterPage: true});
+            this.setState({...initialState, isRegisterPage: true});
         }
     }
 
