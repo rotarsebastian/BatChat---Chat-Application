@@ -5,12 +5,16 @@ import './Rooms.css';
 
 class Rooms extends Component {
 
+    constructor(props) {
+        super(props);
+        this.eventSource = null;
+    }
+
     state = {
         rooms: null,
         username: null,
         newRoomName: '',
         endpoint: 'http://127.0.0.1:9000',
-        eventSource: null
     }
 
     async componentDidMount() {
@@ -25,9 +29,8 @@ class Rooms extends Component {
                 const { rooms, username } = res;
                 this.setState({ rooms, username });
 
-                const eventSource = new EventSource(`${this.state.endpoint}/rooms/sse`);
-                this.setState({ eventSource });
-                eventSource.addEventListener('message', e => {
+                this.eventSource = new EventSource(`${this.state.endpoint}/rooms/sse`);
+                this.eventSource.addEventListener('message', e => {
                     try {
                         console.log(e.data);
                         const rooms = JSON.parse(e.data);
@@ -52,9 +55,12 @@ class Rooms extends Component {
         }
     }
 
+    componentWillUnmount() {
+        if(this.eventSource) this.eventSource.close();
+    }
+
     handleJoinRoom = () => {
-        const { eventSource } = this.state;
-        eventSource.close();
+        this.eventSource.close();
         const { history } = this.props;
         history.push('/chatRoom');
     }
@@ -71,6 +77,7 @@ class Rooms extends Component {
                             return (
                                 <div className="room-element" key={index} >
                                     <div className="room-name">{room.name}</div>
+                                    <div className="room-active-users">{room.users.length}</div>
                                     <button onClick={this.handleJoinRoom} className="rooms-join-room" >Join Room</button>
                                 </div>
                             );

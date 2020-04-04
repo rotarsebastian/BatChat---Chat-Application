@@ -37,14 +37,16 @@ class ChatRoom extends Component {
                     // QUICKFIX (change this)
                     if(room === undefined) room = 'General'; // If no room set room to default General room
                        else room = this.props.location.state.room;
-                    // Join chat room
 
+                    // Join chat room
                     socket.emit('joinRoom', { username, room });  
+
                     // Get room and users
-                    socket.on('roomUsers', ({ room, users }) => {
-                        console.log(room, users)
+                    socket.on('getRoomUsers', ({ users }) => {
+                        console.log(users);
                         this.setState({room, users, socket});
                     });
+
                     // Message from server
                     socket.on('message', message => {
                         const { messages } = this.state;
@@ -77,12 +79,16 @@ class ChatRoom extends Component {
         e.target.firstChild.focus();
     }
 
-    handleLeaveChat = () => {
-        const { history } = this.props;
+    componentWillUnmount(){
         const { socket } = this.state;
         socket.disconnect();
-        this.setState({socket: null});
-        history.push('/authentication');
+        // this.setState({ socket: null });
+        console.log('disconnected from ' + this.state.room);
+    }
+
+    handleLeaveChat = () => {
+        const { history } = this.props;
+        history.push('/rooms');
     }
 
     render () {

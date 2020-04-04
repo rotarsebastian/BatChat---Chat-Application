@@ -5,7 +5,7 @@ const cors = require('cors');
 const socketio = require('socket.io');
 const { formatMessage, saveMessageToDB } = require('./utils/messages');
 const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utils/users');
-const { getCurrentRooms, addNewRoom } = require('./utils/rooms');
+const { getCurrentRooms, addRoomMember, removeRoomMember } = require('./utils/rooms');
 const mongoose = require('mongoose');
 
 global.jwt;
@@ -68,7 +68,7 @@ io.on('connection', socket => {
     const joinChatMessage = ' has joined the chat';
     const leftChatMessage = ' has left the chat';
 
-    console.log('CONNECTION MADE');
+    console.log('SOCKET CONNECTION MADE');
 
     // CHECK USER TOKEN
     socket.on('checkToken', tokenObj => {
@@ -87,8 +87,12 @@ io.on('connection', socket => {
         const res = userJoin(socket.id, username, room);
 
         socket.join(res.user.room);
-
+        
         if(res.newAdded) {
+
+            // Update room members
+            const newRoom = addRoomMember(res.user.room, res.user.username);
+
             // Welcome current user
             socket.emit('message', formatMessage(socket.id, botName, `${welcomeMessage} ${res.user.room} room!`, true));
 
@@ -100,10 +104,10 @@ io.on('connection', socket => {
         }
 
         // Send users and room info
-        io.to(res.user.room).emit('roomUsers', {
-            room: res.user.room,
+        io.to(res.user.room).emit('getRoomUsers', {
             users: getRoomUsers(res.user.room)
         });
+
     });
 
     //Listen for chat message
@@ -116,8 +120,11 @@ io.on('connection', socket => {
 
     // Runs when client disconnets
     socket.on('disconnect', () => {
+        console.log('USER DISCONNECTED');
         const user = userLeave(socket.id);
         if(user) {
+            const newRoom = removeRoomMember(user.room, user.username);
+            // console.log(newRoom);
             io.to(user.room).emit('message', formatMessage(socket.id, botName, `${user.username} ${leftChatMessage}`, true));
             // Update users and room info
             io.to(user.room).emit('roomUsers', {

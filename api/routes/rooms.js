@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getCurrentRooms, addNewRoom } = require('../utils/rooms');
+let timer;
 
 router.post('/', (req, res) => {
     const { roomName, username } = req.body;
@@ -18,7 +19,12 @@ router.get('/sse', (req, res) => {
     setInterval(() => {
         res.status(200).write(`data: ${JSON.stringify(getCurrentRooms())}\n\n`);
     }, 1000);
-});
 
+    res.on('close', () => {
+        if (!res.finished) {
+            console.log("SSE is now CLOSED");
+        }
+    });
+});
 
 module.exports = router;
