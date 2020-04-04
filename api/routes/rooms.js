@@ -1,12 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { getCurrentRooms, addNewRoom } = require('../utils/rooms');
+const { getCurrentRooms, addNewRoom, isRoomNameAvailable } = require('../utils/rooms');
 let timer;
 
 router.post('/', (req, res) => {
     const { roomName, username } = req.body;
     const newRooms = addNewRoom(roomName, username);
     if(newRooms) res.status(200).json({ status: 1, rooms: newRooms});
+});
+
+router.get('/available/:roomName', (req, res) => {
+    const { roomName } = req.params;
+    const foundRoom = isRoomNameAvailable(roomName);
+    if(foundRoom === -1) res.status(200).json({ status: 1, isAvailable: 1});
+        else res.status(200).json({ status: 0, isAvailable: 0});
 });
 
 // #####################################

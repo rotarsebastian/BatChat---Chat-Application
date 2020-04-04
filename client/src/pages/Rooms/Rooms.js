@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import auth from '../../helpers/auth';
-import { createRoom } from '../../helpers/rooms';
+import { createRoom, isRoomNameAvailable } from '../../helpers/rooms';
+import { validateInputValue } from '../../helpers/validation';
+import { DebounceInput } from 'react-debounce-input';
 import './Rooms.css';
 
 class Rooms extends Component {
@@ -11,9 +13,10 @@ class Rooms extends Component {
     }
 
     state = {
-        rooms: null,
+        rooms: [],
         username: null,
-        newRoomName: '',
+        searchValue: '',
+        newRoomName: { val: '', valid: false },
         endpoint: 'http://127.0.0.1:9000',
     }
 
@@ -34,7 +37,11 @@ class Rooms extends Component {
                     try {
                         console.log(e.data);
                         const rooms = JSON.parse(e.data);
-                        this.setState({ rooms });
+                        let searchedRooms = rooms;
+                        if(this.state.searchValue.length > 1) {
+                            searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(this.state.searchValue.toLowerCase()));
+                        }
+                        this.setState({ rooms: searchedRooms });
                     } catch (error) {
                         console.log(error);
                     }
@@ -46,12 +53,14 @@ class Rooms extends Component {
         }
     }
 
-    handleCreateRoom = async() => {
+    handleCreateRoom = async(e) => {
+        e.persist();
         const { newRoomName, username } = this.state;
-        // VALIDATE NEWROOM 
-        if(newRoomName && username) {
-            const res = await createRoom(newRoomName, username);
-            console.log(res);
+        if(newRoomName.isValid && username.length > 0) {
+            const res = await createRoom(newRoomName.val, username);
+            if(res.status === 0) return console.log(res);
+            e.target.previousSibling.classList.remove('show');
+            this.setState({newRoomName: { val: '', isValid: false }});
         }
     }
 
@@ -65,19 +74,72 @@ class Rooms extends Component {
         history.push('/chatRoom');
     }
 
+    handleInputChange = async(e) => {
+        const { value: newRoomName } = e.target;
+        const isValid = await this.validateNewRoomInput(newRoomName, e);
+        if(isValid) this.setState({ newRoomName: { val: newRoomName, isValid } });
+            else this.setState({ newRoomName: { val: newRoomName, isValid } });
+    }
+
+    validateNewRoomInput = async(newRoomName, e) => {
+        const validClass = e.target.nextSibling.classList;
+        const errorClass = e.target.previousSibling.classList;
+        if(newRoomName.length >= 3) {
+            const isValid = validateInputValue('newRoom', newRoomName);
+            if(isValid) {
+                const res = await isRoomNameAvailable(newRoomName);
+                if(res.isAvailable === 1) {
+                    validClass.add('show');
+                    errorClass.remove('show');
+                    return true;
+                } else {
+                    errorClass.add('show');
+                    validClass.remove('show');
+                    return false;
+                }
+            }
+        } else {
+            validClass.remove('show');
+            errorClass.remove('show');
+            return false;
+        }
+    }
+
+    handleSearch = el => {
+        const { value: inputValue } = el;
+        this.setState({ searchValue: inputValue });
+    }
+
+    handleLogout = () => {
+        this.eventSource.close();
+        const { history } = this.props;
+        history.push('/authentication');
+    }
+
     render () {
-        const { rooms, newRoomName } = this.state;
+        const { rooms, newRoomName, searchValue } = this.state;
         if(rooms === null) return null;
         return (
             <div className="Rooms">
                 <div className="rooms-title">Rooms</div>
+                <div className="rooms-search-bar">
+                    <div className="rooms-search-icon"><i className="fas fa-search"></i></div>
+                    <DebounceInput
+                        className="rooms-search-bar-input"
+                        placeholder="Search for a room" 
+                        minLength={1}
+                        value={searchValue}
+                        debounceTimeout={400}
+                        onChange={({ target }) => this.handleSearch(target)} />
+                </div>
                 <div className="rooms-list">
+                    { rooms.length === 0 ? <div>No rooms matching your search!</div> : undefined }
                     {
-                        rooms.map((room, index) => {
+                        rooms.map(room => {
                             return (
-                                <div className="room-element" key={index} >
+                                <div className="room-element" key={room.id} id={room.id} >
                                     <div className="room-name">{room.name}</div>
-                                    <div className="room-active-users">{room.users.length}</div>
+                                    <div className="room-active-users">{room.users.length} Members</div>
                                     <button onClick={this.handleJoinRoom} className="rooms-join-room" >Join Room</button>
                                 </div>
                             );
@@ -85,11 +147,17 @@ class Rooms extends Component {
                     }
                 </div>
                 <div className="rooms-add-room-container">
-                    <input  id="rooms-new-room-input" type="text" value={newRoomName} onChange={(e) => this.setState({newRoomName: e.target.value})} 
-                        placeholder="Enter new room name"
+                    <div className="rooms-room-already-taken">This room name is already taken!</div>
+                    <input  id="rooms-new-room-input" type="text" value={newRoomName.val} 
+                        onChange={this.handleInputChange} 
+                        placeholder="Your room name"
+                        maxLength="20"
+                        minLength="3"
                     />
+                    <span className="rooms-new-room-verification" ><i className="fas fa-check"></i></span>
                     <button onClick={this.handleCreateRoom} className="rooms-create-new-room" >Add new room</button>
                 </div>
+                <button onClick={this.handleLogout} >Logout</button>
             </div>
         );
     }

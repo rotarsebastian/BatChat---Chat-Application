@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import login from '../../helpers/login';
-import register from '../../helpers/register';
+import { login, register } from '../../helpers/auth';
 import './Authentication.css';
 import { validateForm, validateInputValue } from '../../helpers/validation';
 import capitalize from '../../helpers/capitalize';

@@ -19,4 +19,38 @@ const auth = async(token, config) => {
     }
 };
 
+export const login = async(username, password) => {
+    
+    try {
+        const options = {
+            method: 'POST',
+            uri: 'http://127.0.0.1:9000/users/login',
+            body: [ username, password ],
+            json: true 
+        };
+        const response = await request(options);
+        return response;
+    }
+    catch(err) {
+        return console.log('Server under maintanence!', err);
+    }
+};
+
+export const register = async(username, password, email) => {
+    
+    try {
+        const options = {
+            method: 'POST',
+            uri: 'http://127.0.0.1:9000/users/register',
+            body: [ username, password, email ],
+            json: true 
+        };
+        const response = await request(options);
+        return response;
+    }
+    catch(err) {
+        return console.log('Server under maintanence!', err);
+    }
+};
+
 export default auth;

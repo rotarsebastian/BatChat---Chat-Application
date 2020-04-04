@@ -32,13 +32,18 @@ const removeRoomMember = (room, username) => {
     const indexUser = newRoomObject.users.findIndex(user => user === username);
     if(indexUser !== -1) newRoomObject.users.splice(indexUser, 1);
     rooms[roomToUpdateIndex] = newRoomObject;
-    console.log(rooms);
     return newRoomObject;
+}
+
+// Check if room exists 
+const isRoomNameAvailable = roomName => {
+    return rooms.findIndex(room => room.name.toLowerCase() === roomName.toLowerCase());
 }
 
 module.exports = {
     getCurrentRooms,
     addNewRoom,
     addRoomMember,
-    removeRoomMember
+    removeRoomMember,
+    isRoomNameAvailable
 }

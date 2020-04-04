@@ -78,7 +78,7 @@ router.post('/auth', (req, res) => {
         if(options === 'rooms') response.rooms = getCurrentRooms();
         if(user) res.status(200).send(response);
     } catch(err) {
-        res.status(500).send({ status: 0, msg: 'User not authorized!'});
+        res.status(200).send({ status: 0, msg: 'User not authorized!'});
     }
 });
 

@@ -17,6 +17,8 @@ export const validateInputValue = (type, value) => {
             return value.length >= 6 && value.length <= 50;
         case 'email':
             return /@.+\.[A-Za-z]{2,}$/.test(value);
+        case 'newRoom':
+            return value.length >= 3 && value.length <= 20 && /^[a-zA-Z0-9_.-]*$/.test(value);
         default:
             console.log(`Validation failed! No validation for ${type}!`);
         break;

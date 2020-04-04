@@ -17,3 +17,19 @@ export const createRoom = async(roomName, username) => {
     }
 };
 
+export const isRoomNameAvailable = async(roomName) => {
+    
+    try {
+        const options = {
+            method: 'GET',
+            uri: `http://127.0.0.1:9000/rooms/available/${encodeURIComponent(roomName)}`,
+            json: true 
+        };
+        const response = await request(options);
+        return response;
+    }
+    catch(err) {
+        return console.log('Server under maintanence!', err);
+    }
+};
+
