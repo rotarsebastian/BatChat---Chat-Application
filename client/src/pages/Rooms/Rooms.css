@@ -1,0 +1,43 @@
+.Rooms {
+    padding: 1rem;
+}
+
+.Rooms .rooms-title {
+    text-align: center;
+    padding: 3rem;
+    font-size: 2rem;
+}
+
+.Rooms .rooms-list .room-element {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border: 1px solid red;
+    margin: .4rem 0;
+}
+
+.Rooms .rooms-list .room-element button.rooms-join-room {
+    padding: .75rem 1.2rem;
+    background: green;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.Rooms .rooms-add-room-container {
+    margin-top: 1rem;
+}
+
+.Rooms .rooms-add-room-container input#rooms-new-room-input {
+    padding: .75rem 1.2rem;
+    width: 15rem;
+    margin-right: 1rem;
+}
+.Rooms .rooms-add-room-container button.rooms-create-new-room {
+    padding: .75rem 1.2rem;
+    background: salmon;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+}
+

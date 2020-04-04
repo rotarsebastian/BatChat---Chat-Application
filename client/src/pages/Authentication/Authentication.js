@@ -7,7 +7,6 @@ import capitalize from '../../helpers/capitalize';
 
 const initialState = {
     username: { type: 'username', val: '' },
-    room: 'JavaScript',
     password: { type: 'password', val: '' },
     rePassword: { type: 'password', val: '' },
     email: { type: 'email', val: '' },
@@ -28,14 +27,14 @@ class Authentication extends Component {
     handleChange = e => {
         const { isRegisterPage } = this.state;
         const { name: type, value: newValue } = e.target;
-        if(type !== 'room') this.validateInput(e, type, newValue);
+        this.validateInput(e, type, newValue);
         isRegisterPage ? this.showValidButton(4) : this.showValidButton(2);
         this.updateInputState(type, newValue);
     }
 
     handleSubmit = async(e) => {
         e.preventDefault();
-        const { isRegisterPage, room } = this.state;
+        const { isRegisterPage } = this.state;
         let areThereErrors = false;
         
         if(isRegisterPage) areThereErrors = await this.handleRegistration(e);
@@ -46,7 +45,7 @@ class Authentication extends Component {
             if(isRegisterPage) this.setState( {isRegisterPage: false} );
                 else {
                     const { history } = this.props;
-                    history.push('/chatRoom', { room });
+                    history.push('/rooms');
                 }
             
         }
@@ -161,8 +160,6 @@ class Authentication extends Component {
                 return this.setState({rePassword: { type: 'password', val: newValue }});
             case 'email':
                 return this.setState({email: newEl});
-            case 'room':
-                return this.setState({room: newValue});
             default:
                 return console.log(`Failed to update state for ${type}!`);
         }
@@ -197,8 +194,8 @@ class Authentication extends Component {
     }
 
     render () {
-        const { room, username, password, rePassword, isRegisterPage, email } = this.state;
-        let showRooms, pageName = null;
+        const { username, password, rePassword, isRegisterPage, email } = this.state;
+        let pageName = null;
         if(!isRegisterPage) pageName = 'Login';
         return (
             <div className="auth-container">
@@ -261,7 +258,6 @@ class Authentication extends Component {
                             }
                             <span className="verification" ><i className="fas fa-check"></i></span>
                         </div>
-                        { showRooms }
                         <button type="submit" className="btn">{isRegisterPage ? 'Register' : 'Join Chat'}</button>
                     </form>
                     { isRegisterPage 

@@ -35,12 +35,14 @@ class ChatRoom extends Component {
                 if(status === 1) {
                     let room = undefined;
                     // QUICKFIX (change this)
-                    if(room === undefined) room = 'JavaScript'; // If no room set room to default JavaScript room
+                    if(room === undefined) room = 'General'; // If no room set room to default General room
                        else room = this.props.location.state.room;
                     // Join chat room
+
                     socket.emit('joinRoom', { username, room });  
                     // Get room and users
                     socket.on('roomUsers', ({ room, users }) => {
+                        console.log(room, users)
                         this.setState({room, users, socket});
                     });
                     // Message from server

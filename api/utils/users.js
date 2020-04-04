@@ -2,10 +2,13 @@ const users = [];
 
 // Join user to chat
 const userJoin = (id, username, room) => {
-    const user = { id, username, room };
-    users.push(user);
-
-    return user;
+    const userAlreadyInRoom = users.find(user => user.username === username);
+    if(!userAlreadyInRoom) {
+        const user = { id, username, room };
+        users.push(user);
+        return { user: user, newAdded: true };
+    }
+    return { user: userAlreadyInRoom, newAdded: false };
 }
 
 // Get the current user
@@ -25,7 +28,6 @@ const userLeave = (id) => {
 const getRoomUsers = (id) => {
     return users.filter(user => user.room === id);
 }
-
 
 module.exports = {
     userJoin,

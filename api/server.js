@@ -5,6 +5,7 @@ const cors = require('cors');
 const socketio = require('socket.io');
 const { formatMessage, saveMessageToDB } = require('./utils/messages');
 const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utils/users');
+const { getCurrentRooms, addNewRoom } = require('./utils/rooms');
 const mongoose = require('mongoose');
 
 global.jwt;
@@ -47,6 +48,10 @@ app.use('/', rIndex);
 const rUsers = require(path.join(__dirname, 'routes', 'users.js'));
 app.use('/users', rUsers);
 
+// APPEND ROOMS ROUTE
+const rRooms = require(path.join(__dirname, 'routes', 'rooms.js'));
+app.use('/rooms', rRooms);
+
 // ################################################
 // ############# ROUTING - END ####################
 // ################################################
@@ -59,6 +64,7 @@ io.on('connection', socket => {
     // Bot and its Messages
     const botName = 'Chat Bot';
     const welcomeMessage = 'Welcome to ';
+    const rewelcomeMessage = 'Hello again to ';
     const joinChatMessage = ' has joined the chat';
     const leftChatMessage = ' has left the chat';
 
@@ -70,7 +76,7 @@ io.on('connection', socket => {
         try {
             const user = jwt.verify(token, accessTokenSecret);
             if(user) {
-                socket.emit('authorized', { status: 1, msg: 'User authorized!', username: user.username});
+                socket.emit('authorized', { status: 1, msg: 'User authorized!', username: user.username, rooms: getCurrentRooms() });
             }
         } catch(err) {
             socket.emit('authorized', { status: 0, msg: 'User not authorized!'});
@@ -78,20 +84,25 @@ io.on('connection', socket => {
     });
 
     socket.on('joinRoom', ({ username, room }) => {
-        const user = userJoin(socket.id, username, room);
+        const res = userJoin(socket.id, username, room);
 
-        socket.join(user.room);
+        socket.join(res.user.room);
 
-        // Welcome current user
-        socket.emit('message', formatMessage(socket.id, botName, `${welcomeMessage} ${user.room} room!`, true));
+        if(res.newAdded) {
+            // Welcome current user
+            socket.emit('message', formatMessage(socket.id, botName, `${welcomeMessage} ${res.user.room} room!`, true));
 
-        // Broadcast when a user connects
-        socket.broadcast.to(user.room).emit('message', formatMessage(socket.id, botName, `${user.username} ${joinChatMessage}`, true));
+            // Broadcast when a user connects
+            socket.broadcast.to(res.user.room).emit('message', formatMessage(socket.id, botName, `${res.user.username} ${joinChatMessage}`, true));
+        } else {
+            // Welcome current user
+            socket.emit('message', formatMessage(socket.id, botName, `${rewelcomeMessage} ${res.user.room} room!`, true));
+        }
 
         // Send users and room info
-        io.to(user.room).emit('roomUsers', {
-            room: user.room,
-            users: getRoomUsers(user.room)
+        io.to(res.user.room).emit('roomUsers', {
+            room: res.user.room,
+            users: getRoomUsers(res.user.room)
         });
     });
 

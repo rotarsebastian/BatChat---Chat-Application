@@ -3,6 +3,8 @@ const validate = require('../helpers/validation');
 const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const { getCurrentRooms } = require('../utils/rooms');
+
 
 router.post('/register', (req, res) => {
     const form = [...req.body];
@@ -66,6 +68,18 @@ router.post('/login', (req, res) => {
         });
     })
     .catch(err => console.log(err))
+});
+
+router.post('/auth', (req, res) => {
+    const { token, options } = req.body;
+    try {
+        const user = jwt.verify(token, accessTokenSecret);
+        let response = { status: 1, msg: 'User authorized!', username: user.username };
+        if(options === 'rooms') response.rooms = getCurrentRooms();
+        if(user) res.status(200).send(response);
+    } catch(err) {
+        res.status(500).send({ status: 0, msg: 'User not authorized!'});
+    }
 });
 
 module.exports = router;
