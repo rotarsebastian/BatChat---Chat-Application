@@ -13,12 +13,12 @@ router.post('/register', (req, res) => {
     if(result.status === 0) return res.send({ status: 0, invalids: result.invalidInputs, code: 11 });
 
     const [ username, password, email ] = form;
-    User.findOne({ $or: [ { email : email.val }, { username: username.val }] })
+    User.findOne({ $or: [ { email: email.val  }, { username: username.val }] }).collation({ locale: 'en', strength: 2 })
         .then(user => {
-            if(user) { 
-                if(user.email === email.val && user.username === username.val) return res.send({ status: 0, message: 'Email and username are already taken!', code: 12 }); 
-                if(user.username === username.val) return res.send({ status: 0, message: 'Username is already taken!', code: 13 }); 
-                if(user.email === email.val) return res.send({ status: 0, message: 'Email is already taken!', code: 14 }); 
+            if(user) {
+                if(user.email.toLowerCase() === email.val.toLowerCase() && user.username.toLowerCase() === username.val.toLowerCase()) return res.send({ status: 0, message: 'Email and username are already taken!', code: 12 }); 
+                if(user.username.toLowerCase() === username.val.toLowerCase()) return res.send({ status: 0, message: 'Username is already taken!', code: 13 }); 
+                if(user.email.toLowerCase() === email.val.toLowerCase()) return res.send({ status: 0, message: 'Email is already taken!', code: 14 }); 
             }
             const newUser = new User({
                 username: username.val,
@@ -51,7 +51,7 @@ router.post('/login', (req, res) => {
     const [ username, password ] = form;
 
     // Match user
-    User.findOne({ username: username.val })
+    User.findOne({ username: username.val }).collation({ locale: 'en', strength: 2 })
     .then(user => {
         if(!user) { return res.send({ status: 0, message: 'Incorrent username!', code: 15 }); }
 

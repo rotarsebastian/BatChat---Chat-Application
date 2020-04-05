@@ -155,7 +155,7 @@ class Rooms extends Component {
                         minLength="3"
                     />
                     <span className="rooms-new-room-verification" ><i className="fas fa-check"></i></span>
-                    <button onClick={this.handleCreateRoom} className="rooms-create-new-room" >Add new room</button>
+                    <button onClick={this.handleCreateRoom} className="rooms-create-new-room btn">Add new room</button>
                 </div>
                 <button onClick={this.handleLogout} >Logout</button>
             </div>

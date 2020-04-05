@@ -18,7 +18,9 @@ class ChatRoom extends Component {
         room: '',
         messages: [],
         endpoint: 'http://127.0.0.1:9000',
-        socket: null
+        socket: null,
+        textareaLimit: 100,
+        peopleTyping: []
     }
 
     componentDidMount() {
@@ -43,8 +45,7 @@ class ChatRoom extends Component {
 
                     // Get room and users
                     socket.on('getRoomUsers', ({ users }) => {
-                        console.log(users);
-                        this.setState({room, users, socket});
+                        this.setState({username, room, users, socket});
                     });
 
                     // Message from server
@@ -57,6 +58,26 @@ class ChatRoom extends Component {
                         // Scroll down -- replace this with smooth scroll
                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
                     });
+
+                    // Typing from server
+                    socket.on('printIsTyping', usernameTyping => {
+                        const newPeopleTyping = [...this.state.peopleTyping];
+                        if(newPeopleTyping.findIndex(user => user === usernameTyping) === -1) {
+                            newPeopleTyping.push(usernameTyping);
+                            setTimeout(() => {
+                                const newStatePeopleTyping = [...this.state.peopleTyping];
+                                if(newStatePeopleTyping.findIndex(user => user === usernameTyping) !== -1) {
+                                    const inx = newStatePeopleTyping.findIndex(user => user === usernameTyping);
+                                    newStatePeopleTyping.splice(inx, 1);
+                                    this.setState({peopleTyping: newStatePeopleTyping});
+                                }
+                            }, 2000);
+                        }
+                        const { current: messagesContainer } = this.messagesBox;
+                        this.setState({peopleTyping: newPeopleTyping});
+                        // Scroll down -- replace this with smooth scroll
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    });
                 } else {
                     history.push('/authentication');
                     return;
@@ -66,17 +87,31 @@ class ChatRoom extends Component {
     }
 
     handleChange = e => {
-        const { value: newValue } = e.target;
+        const textarea = e.target;
+        const { value: newValue } = textarea
+        const { textareaLimit, username, socket } = this.state;
+
+        socket.emit('isTyping', username);
+
+        textarea.style.height = ''; 
+        textarea.style.height = Math.min(textarea.scrollHeight, textareaLimit) + 'px';
         this.setState({sendMessage: newValue});
     }
 
-    handleSubmit = e => {
-        e.preventDefault();
+    onEnterPress = e => {
+        if(e.keyCode === 13 && e.shiftKey === false) {
+            e.preventDefault();
+            this.handleSubmit(e.target.parentElement.parentElement, true);
+        }
+    }
+
+    handleSubmit = (e, fromEnter) => {
+        if(fromEnter !== true) e.preventDefault();
         const { sendMessage, socket } = this.state;
         // Emit message to server
         socket.emit('chatMessage', capitalize(sendMessage));
         this.setState({sendMessage: ''});
-        e.target.firstChild.focus();
+        if(fromEnter !== true) e.target.firstChild.firstChild.focus();
     }
 
     componentWillUnmount(){
@@ -92,7 +127,25 @@ class ChatRoom extends Component {
     }
 
     render () {
-        const { sendMessage, room, users, messages } = this.state;
+        console.log(this.state)
+        const { sendMessage, room, users, messages, username, peopleTyping } = this.state;
+        let showPeopleAreTyping = null;
+        if(peopleTyping.length > 0) {
+            if(peopleTyping.length <= 3) {
+                showPeopleAreTyping = (
+                <div>
+                    {
+                        peopleTyping.map((username, index) => {
+                            let comma = null;
+                            if(peopleTyping[peopleTyping.length - 1] !== username && peopleTyping.length > 1) comma = ', ';
+                            return <span key={index}>{username}{comma}</span>
+                        })
+                    }
+                    <span>{peopleTyping.length > 1 ? ' are typing...' : ' is typing...' }</span>
+                </div>
+                );
+            } else showPeopleAreTyping = <div><span>Several people are typing...</span></div>;
+        }
         return (
             <div className="chat-container">
                 <header className="chat-header">
@@ -109,32 +162,50 @@ class ChatRoom extends Component {
                         <ul id="users"> { users.map(user => <li key={user.id + 'user'}>{user.username}</li>) } </ul>
                     </div>
                     {/* Messages will go in here */}
-                    <div className="chat-messages" ref={this.messagesBox}> 
-                        { messages.map((message, index) => {
-                            let messageClass = 'message', botIcon = '';
-                            // Adding BOT icon for the BOT
-                            if(message.fromBot) {
-                                botIcon = ' <i class="fas fa-robot"></i>';
-                                messageClass += ' fromBot';
-                            } 
-                            return <div key={message.id + index} className={messageClass}>
-                                        <p className="meta">{message.username} {Parser(botIcon)} <span>{message.time}</span></p>
-                                        <p className="text">{message.text}</p>
-                                    </div>
-                        })} 
+                    <div className="chat-messages-container">
+                        <div className="chat-messages" ref={this.messagesBox}> 
+                            {   messages.map((message, index) => {
+                                let messageClass = 'message', botIcon = '', hideMyMessage = '', bypassMessage = '', position= 'left', sameExpeditor = '';
+                                // Adding BOT icon for the BOT
+                                if(message.fromBot) {
+                                    botIcon = ' <i class="fas fa-robot"></i>';
+                                    messageClass += ' fromBot';
+                                } else {
+                                    if(message.username === username) {
+                                        position = 'right';
+                                        hideMyMessage = ' hide';
+                                        bypassMessage = ' bypass';
+                                    } 
+                                    if(messages[index - 1].username === message.username) {
+                                        sameExpeditor = ' close-up';
+                                    }
+                                } 
+                                return (<div key={message.id + index} className={position}>
+                                            <div className={messageClass + bypassMessage + sameExpeditor}>
+                                                <p className={"meta" + hideMyMessage}>{ username === message.username || sameExpeditor.length > 0 ? '' : message.username} {Parser(botIcon)} <span>{message.time}</span></p>
+                                                <p className={"text" + bypassMessage} >{message.text}</p>
+                                            </div>
+                                        </div>);
+                            })} 
+                        </div>
+                        {/* <div className="chat-is-typing">AndraR is typing...</div> */}
+                        <div className="chat-is-typing">{ showPeopleAreTyping }</div>
                     </div>
                 </main>
                 <div className="chat-form-container">
                     <form id="chat-form" onSubmit={this.handleSubmit}>
-                        <input
-                            id="msg"
-                            type="text"
-                            placeholder="Enter Message"
-                            required
-                            value={sendMessage}
-                            onChange={this.handleChange}
-                            autoComplete="off"
-                        />
+                        <div className="chat-form-control">
+                            <textarea
+                                id="msg"
+                                type="text"
+                                placeholder="Enter Message"
+                                required
+                                value={sendMessage}
+                                onChange={this.handleChange}
+                                onKeyDown={this.onEnterPress}
+                                autoComplete="off"
+                            ></textarea>
+                        </div>
                         <button type="submit" className="btn"><i className="fas fa-paper-plane"></i> Send</button>
                     </form>
                 </div>

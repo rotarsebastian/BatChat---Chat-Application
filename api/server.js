@@ -118,6 +118,12 @@ io.on('connection', socket => {
         // saveMessageToDB(message);
     });
 
+    //Listen for typing message
+    socket.on('isTyping', username => {
+        const user = getCurrentUser(socket.id);
+        socket.broadcast.to(user.room).emit('printIsTyping', username);
+    });
+
     // Runs when client disconnets
     socket.on('disconnect', () => {
         console.log('USER DISCONNECTED');

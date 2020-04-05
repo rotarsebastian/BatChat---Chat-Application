@@ -3,12 +3,13 @@
 :root {
 	--dark-color-a: linear-gradient(to bottom, #0080ff 5%, #008ecc 95%);
 	--dark-color-b: linear-gradient(#008ecc, #0080ff);
-	--light-color: #e6e9ff;
+	--light-color: #e6e9ff; 
 	--blue-1: #0f52ba;
 	--blue-2: #008ecc;
 	--enabled-color: #ffb446;
 	--error-color: #ff9800;
 	--bot-color: #67d44c;
+	--chat-text: #485877;
 	--border-radius: 4px;
 }
 
