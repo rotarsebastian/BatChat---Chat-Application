@@ -35,10 +35,10 @@ class ChatRoom extends Component {
             socket.emit('checkToken', { token } );
             socket.on('authorized', ({ status, username }) => {
                 if(status === 1) {
-                    let room = undefined;
+                    let room = this.props.location.state.roomName;
                     // QUICKFIX (change this)
                     if(room === undefined) room = 'General'; // If no room set room to default General room
-                       else room = this.props.location.state.room;
+                       else room = this.props.location.state.roomName;
 
                     // Join chat room
                     socket.emit('joinRoom', { username, room });  
@@ -50,33 +50,21 @@ class ChatRoom extends Component {
 
                     // Message from server
                     socket.on('message', message => {
-                        const { messages } = this.state;
+                        const { messages, peopleTyping } = this.state;
                         const { current: messagesContainer } = this.messagesBox;
                         const updatedMessages = [...messages];
                         updatedMessages.push(message);
-                        this.setState({messages: updatedMessages});
+
+                        const updatedPeopleTyping = [...peopleTyping].filter(user => user !== message.username);
+
+                        this.setState({ messages: updatedMessages, peopleTyping: updatedPeopleTyping });
                         // Scroll down -- replace this with smooth scroll
                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
                     });
 
                     // Typing from server
                     socket.on('printIsTyping', usernameTyping => {
-                        const newPeopleTyping = [...this.state.peopleTyping];
-                        if(newPeopleTyping.findIndex(user => user === usernameTyping) === -1) {
-                            newPeopleTyping.push(usernameTyping);
-                            setTimeout(() => {
-                                const newStatePeopleTyping = [...this.state.peopleTyping];
-                                if(newStatePeopleTyping.findIndex(user => user === usernameTyping) !== -1) {
-                                    const inx = newStatePeopleTyping.findIndex(user => user === usernameTyping);
-                                    newStatePeopleTyping.splice(inx, 1);
-                                    this.setState({peopleTyping: newStatePeopleTyping});
-                                }
-                            }, 2000);
-                        }
-                        const { current: messagesContainer } = this.messagesBox;
-                        this.setState({peopleTyping: newPeopleTyping});
-                        // Scroll down -- replace this with smooth scroll
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        this.handleOnTyping(usernameTyping);
                     });
                 } else {
                     history.push('/authentication');
@@ -96,6 +84,22 @@ class ChatRoom extends Component {
         textarea.style.height = ''; 
         textarea.style.height = Math.min(textarea.scrollHeight, textareaLimit) + 'px';
         this.setState({sendMessage: newValue});
+    }
+
+    handleOnTyping = usernameTyping => {
+        const newPeopleTyping = [...this.state.peopleTyping];
+        // if(newPeopleTyping.findIndex(user => user === usernameTyping) === -1) {
+            newPeopleTyping.push(usernameTyping);
+            setTimeout(() => {
+                const newStatePeopleTyping = [...this.state.peopleTyping];
+                if(newStatePeopleTyping.findIndex(user => user === usernameTyping) !== -1) {
+                    const inx = newStatePeopleTyping.findIndex(user => user === usernameTyping);
+                    newStatePeopleTyping.splice(inx, 1);
+                    this.setState({peopleTyping: newStatePeopleTyping});
+                }
+            }, 2000);
+        // }
+        this.setState({peopleTyping: newPeopleTyping});
     }
 
     onEnterPress = e => {
@@ -127,21 +131,21 @@ class ChatRoom extends Component {
     }
 
     render () {
-        console.log(this.state)
         const { sendMessage, room, users, messages, username, peopleTyping } = this.state;
         let showPeopleAreTyping = null;
-        if(peopleTyping.length > 0) {
-            if(peopleTyping.length <= 3) {
+        let sortedPeopleTyping = [...new Set(peopleTyping)];
+        if(sortedPeopleTyping.length > 0) {
+            if(sortedPeopleTyping.length <= 3) {
                 showPeopleAreTyping = (
                 <div>
                     {
-                        peopleTyping.map((username, index) => {
+                        sortedPeopleTyping.map((username, index) => {
                             let comma = null;
-                            if(peopleTyping[peopleTyping.length - 1] !== username && peopleTyping.length > 1) comma = ', ';
+                            if(sortedPeopleTyping[sortedPeopleTyping.length - 1] !== username && sortedPeopleTyping.length > 1) comma = ', ';
                             return <span key={index}>{username}{comma}</span>
                         })
                     }
-                    <span>{peopleTyping.length > 1 ? ' are typing...' : ' is typing...' }</span>
+                    <span>{sortedPeopleTyping.length > 1 ? ' are typing...' : ' is typing...' }</span>
                 </div>
                 );
             } else showPeopleAreTyping = <div><span>Several people are typing...</span></div>;
@@ -159,7 +163,7 @@ class ChatRoom extends Component {
                         <h2 id="room-name">{room}</h2>
                         <h3><i className="fas fa-users"></i> Users<span className="online-status"> &#9673;</span></h3>
                         {/* Inside here go the current users in the room */}
-                        <ul id="users"> { users.map(user => <li key={user.id + 'user'}>{user.username}</li>) } </ul>
+                        <ul id="users"> { users.map((user, index) => <li key={user + index}>{user}</li>) } </ul>
                     </div>
                     {/* Messages will go in here */}
                     <div className="chat-messages-container">

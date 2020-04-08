@@ -13,7 +13,7 @@ class Rooms extends Component {
     }
 
     state = {
-        rooms: [],
+        rooms: null,
         username: null,
         searchValue: '',
         newRoomName: { val: '', valid: false },
@@ -29,14 +29,15 @@ class Rooms extends Component {
             const token = localStorage.getItem('userToken');
             const res = await auth(token, 'rooms');
             if(res.status === 1) {
+                console.log(res)
                 const { rooms, username } = res;
                 this.setState({ rooms, username });
 
                 this.eventSource = new EventSource(`${this.state.endpoint}/rooms/sse`);
                 this.eventSource.addEventListener('message', e => {
                     try {
-                        console.log(e.data);
                         const rooms = JSON.parse(e.data);
+                        console.log(rooms);
                         let searchedRooms = rooms;
                         if(this.state.searchValue.length > 1) {
                             searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(this.state.searchValue.toLowerCase()));
@@ -68,10 +69,10 @@ class Rooms extends Component {
         if(this.eventSource) this.eventSource.close();
     }
 
-    handleJoinRoom = () => {
+    handleJoinRoom = roomName => {
         this.eventSource.close();
         const { history } = this.props;
-        history.push('/chatRoom');
+        history.push('/chatRoom', { roomName });
     }
 
     handleInputChange = async(e) => {
@@ -118,7 +119,7 @@ class Rooms extends Component {
 
     render () {
         const { rooms, newRoomName, searchValue } = this.state;
-        if(rooms === null) return null;
+        if(rooms === null) return <div>SPINNNNER</div>;
         return (
             <div className="Rooms">
                 <div className="rooms-title">Rooms</div>
@@ -133,14 +134,14 @@ class Rooms extends Component {
                         onChange={({ target }) => this.handleSearch(target)} />
                 </div>
                 <div className="rooms-list">
-                    { rooms.length === 0 ? <div>No rooms matching your search!</div> : undefined }
+                    { rooms.length === 0 ? <div>No rooms matching your search!</div> : undefined } 
                     {
                         rooms.map(room => {
                             return (
-                                <div className="room-element" key={room.id} id={room.id} >
+                                <div className="room-element" key={room._id} id={room._id} >
                                     <div className="room-name">{room.name}</div>
                                     <div className="room-active-users">{room.users.length} Members</div>
-                                    <button onClick={this.handleJoinRoom} className="rooms-join-room" >Join Room</button>
+                                    <button onClick={() => this.handleJoinRoom(room.name)} className="rooms-join-room">Join Room</button>
                                 </div>
                             );
                         })

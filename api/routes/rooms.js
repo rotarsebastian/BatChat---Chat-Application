@@ -1,12 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const { getCurrentRooms, addNewRoom, isRoomNameAvailable } = require('../utils/rooms');
-let timer;
+const { getCurrentRooms, isRoomNameAvailable } = require('../utils/rooms');
+const Room = require('../models/Room');
 
 router.post('/', (req, res) => {
     const { roomName, username } = req.body;
-    const newRooms = addNewRoom(roomName, username);
-    if(newRooms) res.status(200).json({ status: 1, rooms: newRooms});
+
+    Room.findOne({ name: roomName }).collation({ locale: 'en', strength: 2 })
+    .then(room => {
+        if(room) return res.send({ status: 0, message: 'Room already existing!', code: 115 });
+
+        const newRoom = new Room({
+            name: roomName,
+            users: [],
+        });
+
+        // Save room
+        newRoom.save()
+            .then(async(room) => { 
+                const rooms = await getCurrentRooms();
+                return res.send({ status: 1, message: `SUCCESS: Room ${room.name} is now created!`, rooms, code: 200 });
+            })
+            .catch(err => console.log(err));
+    })
+    .catch(err => console.log(err));
 });
 
 router.get('/available/:roomName', (req, res) => {
@@ -23,8 +40,9 @@ router.get('/sse', (req, res) => {
     res.set('Cache-Control', 'no-cache');
     res.set('Access-Control-Allow-Origin', '*');
     console.log('Client connected to SSE!');
-    setInterval(() => {
-        res.status(200).write(`data: ${JSON.stringify(getCurrentRooms())}\n\n`);
+    setInterval(async() => {
+        const data = await getCurrentRooms();
+        res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);
     }, 1000);
 
     res.on('close', () => {

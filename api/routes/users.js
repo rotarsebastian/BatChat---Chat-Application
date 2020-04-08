@@ -70,12 +70,12 @@ router.post('/login', (req, res) => {
     .catch(err => console.log(err))
 });
 
-router.post('/auth', (req, res) => {
+router.post('/auth', async(req, res) => {
     const { token, options } = req.body;
     try {
         const user = jwt.verify(token, accessTokenSecret);
         let response = { status: 1, msg: 'User authorized!', username: user.username };
-        if(options === 'rooms') response.rooms = getCurrentRooms();
+        if(options === 'rooms') response.rooms = await getCurrentRooms();
         if(user) res.status(200).send(response);
     } catch(err) {
         res.status(200).send({ status: 0, msg: 'User not authorized!'});

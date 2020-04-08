@@ -4,8 +4,8 @@ const express = require('express');
 const cors = require('cors');
 const socketio = require('socket.io');
 const { formatMessage, saveMessageToDB } = require('./utils/messages');
-const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utils/users');
-const { getCurrentRooms, addRoomMember, removeRoomMember } = require('./utils/rooms');
+const { userJoin, getCurrentUser, userLeave } = require('./utils/users');
+const { getCurrentRooms, addRoomMember, removeRoomMember, getRoomUsers } = require('./utils/rooms');
 const mongoose = require('mongoose');
 
 global.jwt;
@@ -71,19 +71,19 @@ io.on('connection', socket => {
     console.log('SOCKET CONNECTION MADE');
 
     // CHECK USER TOKEN
-    socket.on('checkToken', tokenObj => {
+    socket.on('checkToken', async(tokenObj) => {
         const { token } = tokenObj;
         try {
             const user = jwt.verify(token, accessTokenSecret);
             if(user) {
-                socket.emit('authorized', { status: 1, msg: 'User authorized!', username: user.username, rooms: getCurrentRooms() });
+                socket.emit('authorized', { status: 1, msg: 'User authorized!', username: user.username, rooms: await getCurrentRooms() });
             }
         } catch(err) {
             socket.emit('authorized', { status: 0, msg: 'User not authorized!'});
         }
     });
 
-    socket.on('joinRoom', ({ username, room }) => {
+    socket.on('joinRoom', async({ username, room }) => {
         const res = userJoin(socket.id, username, room);
 
         socket.join(res.user.room);
@@ -91,13 +91,16 @@ io.on('connection', socket => {
         if(res.newAdded) {
 
             // Update room members
-            const newRoom = addRoomMember(res.user.room, res.user.username);
+            const response = await addRoomMember(res.user.room, res.user.username);
 
-            // Welcome current user
-            socket.emit('message', formatMessage(socket.id, botName, `${welcomeMessage} ${res.user.room} room!`, true));
+            if(response.status === 1) {
+                // Welcome current user
+                socket.emit('message', formatMessage(socket.id, botName, `${welcomeMessage} ${res.user.room} room!`, true));
+    
+                // Broadcast when a user connects
+                socket.broadcast.to(res.user.room).emit('message', formatMessage(socket.id, botName, `${res.user.username} ${joinChatMessage}`, true));
+            } else console.log('Error adding user in the room!');
 
-            // Broadcast when a user connects
-            socket.broadcast.to(res.user.room).emit('message', formatMessage(socket.id, botName, `${res.user.username} ${joinChatMessage}`, true));
         } else {
             // Welcome current user
             socket.emit('message', formatMessage(socket.id, botName, `${rewelcomeMessage} ${res.user.room} room!`, true));
@@ -125,18 +128,19 @@ io.on('connection', socket => {
     });
 
     // Runs when client disconnets
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async() => {
         console.log('USER DISCONNECTED');
         const user = userLeave(socket.id);
         if(user) {
-            const newRoom = removeRoomMember(user.room, user.username);
-            // console.log(newRoom);
-            io.to(user.room).emit('message', formatMessage(socket.id, botName, `${user.username} ${leftChatMessage}`, true));
-            // Update users and room info
-            io.to(user.room).emit('roomUsers', {
-                room: user.room,
-                users: getRoomUsers(user.room)
-            });
+            const response = await removeRoomMember(user.room, user.username);
+            if(response.status === 1) {
+                io.to(user.room).emit('message', formatMessage(socket.id, botName, `${user.username} ${leftChatMessage}`, true));
+                // Update users and room info
+                io.to(user.room).emit('getRoomUsers', {
+                    room: user.room,
+                    users: getRoomUsers(user.room)
+                });
+            } else console.log('Error removing user from room!');
         }
     });
 });

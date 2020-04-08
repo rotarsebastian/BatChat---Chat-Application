@@ -61,7 +61,7 @@ header .btn {
     background: #fff;
     margin: 8px;
     margin-right: 0;
-    box-shadow: 0 0 8px #fff;
+    box-shadow: 0 0 8px #bae2ff;
 }
 
 .chat-messages-container .chat-is-typing {
