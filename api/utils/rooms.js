@@ -45,6 +45,7 @@ const removeRoomMember = async(room, username) => {
         else return { status: 0, updatedRoom: roomToUpdate};
 }
 
+
 // Check if room exists 
 const isRoomNameAvailable = roomName => {
     return rooms.findIndex(room => room.name.toLowerCase() === roomName.toLowerCase());
@@ -57,10 +58,24 @@ const getRoomUsers = room => {
     return users;
 }
 
+// Get room user
+const resetRoomMembers = async() => {
+    let updated = false;
+
+    updated = await Room.updateMany({}, { users: [] }, {upsert: true}, (err, doc) => {
+        if (err) { console.log(err); return false; }
+        return true;     
+    });
+
+    if(updated) return { status: 1 };
+        else return { status: 0 };
+}
+
 module.exports = {
     getCurrentRooms,
     addRoomMember,
     removeRoomMember,
     isRoomNameAvailable,
-    getRoomUsers
+    getRoomUsers,
+    resetRoomMembers
 }

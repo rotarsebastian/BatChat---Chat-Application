@@ -29,7 +29,6 @@ class Rooms extends Component {
             const token = localStorage.getItem('userToken');
             const res = await auth(token, 'rooms');
             if(res.status === 1) {
-                console.log(res)
                 const { rooms, username } = res;
                 this.setState({ rooms, username });
 

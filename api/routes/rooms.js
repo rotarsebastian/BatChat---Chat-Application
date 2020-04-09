@@ -13,12 +13,14 @@ router.post('/', (req, res) => {
         const newRoom = new Room({
             name: roomName,
             users: [],
+            messages: [],
         });
 
         // Save room
         newRoom.save()
             .then(async(room) => { 
                 const rooms = await getCurrentRooms();
+                globalVersion++;
                 return res.send({ status: 1, message: `SUCCESS: Room ${room.name} is now created!`, rooms, code: 200 });
             })
             .catch(err => console.log(err));
@@ -35,14 +37,18 @@ router.get('/available/:roomName', (req, res) => {
 
 // #####################################
 router.get('/sse', (req, res) => {
+    let localVersion = 0;
     res.set('Content-Type', 'text/event-stream');
     res.set('Connection', 'keep-alive');
     res.set('Cache-Control', 'no-cache');
     res.set('Access-Control-Allow-Origin', '*');
     console.log('Client connected to SSE!');
     setInterval(async() => {
-        const data = await getCurrentRooms();
-        res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);
+        if(localVersion < globalVersion) {
+            const data = await getCurrentRooms();
+            res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);
+            localVersion = globalVersion;
+        }
     }, 1000);
 
     res.on('close', () => {

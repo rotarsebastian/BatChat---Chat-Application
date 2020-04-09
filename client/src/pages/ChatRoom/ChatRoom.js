@@ -10,6 +10,7 @@ class ChatRoom extends Component {
     constructor(props) {
         super(props);
         this.messagesBox = React.createRef();
+        this.textArea = React.createRef();
     }
 
     state = {
@@ -35,10 +36,13 @@ class ChatRoom extends Component {
             socket.emit('checkToken', { token } );
             socket.on('authorized', ({ status, username }) => {
                 if(status === 1) {
+                    
+                    if(this.props.location.state === undefined) {
+                        history.push('/rooms');
+                        return;
+                    }
+
                     let room = this.props.location.state.roomName;
-                    // QUICKFIX (change this)
-                    if(room === undefined) room = 'General'; // If no room set room to default General room
-                       else room = this.props.location.state.roomName;
 
                     // Join chat room
                     socket.emit('joinRoom', { username, room });  
@@ -88,17 +92,17 @@ class ChatRoom extends Component {
 
     handleOnTyping = usernameTyping => {
         const newPeopleTyping = [...this.state.peopleTyping];
-        // if(newPeopleTyping.findIndex(user => user === usernameTyping) === -1) {
+        if(newPeopleTyping.findIndex(user => user === usernameTyping) === -1) {
             newPeopleTyping.push(usernameTyping);
+            const index = newPeopleTyping[newPeopleTyping.length - 1];
             setTimeout(() => {
                 const newStatePeopleTyping = [...this.state.peopleTyping];
                 if(newStatePeopleTyping.findIndex(user => user === usernameTyping) !== -1) {
-                    const inx = newStatePeopleTyping.findIndex(user => user === usernameTyping);
-                    newStatePeopleTyping.splice(inx, 1);
+                    newStatePeopleTyping.splice(index, 1);
                     this.setState({peopleTyping: newStatePeopleTyping});
                 }
-            }, 2000);
-        // }
+            }, 3000);
+        }
         this.setState({peopleTyping: newPeopleTyping});
     }
 
@@ -116,11 +120,12 @@ class ChatRoom extends Component {
         socket.emit('chatMessage', capitalize(sendMessage));
         this.setState({sendMessage: ''});
         if(fromEnter !== true) e.target.firstChild.firstChild.focus();
+        this.textArea.current.style.height = ''; 
     }
 
     componentWillUnmount(){
         const { socket } = this.state;
-        socket.disconnect();
+        if(socket) socket.disconnect();
         // this.setState({ socket: null });
         console.log('disconnected from ' + this.state.room);
     }
@@ -202,6 +207,7 @@ class ChatRoom extends Component {
                             <textarea
                                 id="msg"
                                 type="text"
+                                ref={this.textArea}
                                 placeholder="Enter Message"
                                 required
                                 value={sendMessage}

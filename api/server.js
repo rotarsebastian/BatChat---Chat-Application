@@ -5,9 +5,10 @@ const cors = require('cors');
 const socketio = require('socket.io');
 const { formatMessage, saveMessageToDB } = require('./utils/messages');
 const { userJoin, getCurrentUser, userLeave } = require('./utils/users');
-const { getCurrentRooms, addRoomMember, removeRoomMember, getRoomUsers } = require('./utils/rooms');
+const { getCurrentRooms, addRoomMember, removeRoomMember, getRoomUsers, resetRoomMembers } = require('./utils/rooms');
 const mongoose = require('mongoose');
 
+global.globalVersion = 0;
 global.jwt;
 jwt = require('jsonwebtoken');
 
@@ -87,6 +88,7 @@ io.on('connection', socket => {
         const res = userJoin(socket.id, username, room);
 
         socket.join(res.user.room);
+        globalVersion++;
         
         if(res.newAdded) {
 
@@ -147,6 +149,14 @@ io.on('connection', socket => {
 // ################################################
 // ############### SOCKETS - END ##################
 // ################################################
+
+const resetMembers = async() => {
+    const result = await resetRoomMembers();
+    if(result.status === 1) console.log('Room users have been cleaned!');
+        else console.log('Error cleaning the users');
+}
+resetMembers();
+
 
 const PORT = 9000 || process.env.PORT;
 
