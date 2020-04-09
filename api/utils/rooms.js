@@ -1,4 +1,3 @@
-const { v4: uuidv4 } = require('uuid');
 const Room = require('../models/Room');
 let rooms = [ { _id: 0, name: 'General', users: [] } ];
 
@@ -71,11 +70,37 @@ const resetRoomMembers = async() => {
         else return { status: 0 };
 }
 
+// Save message to DB
+const saveMessageToDB = async(room, message) => {
+    if(message.fromBot) return;
+
+    let updated = false;
+    const roomToUpdate = rooms.find(r => r.name === room);
+    roomToUpdate.messages.push(message);
+
+    updated = await Room.updateOne({ name: room }, roomToUpdate, {upsert: true}, (err, doc) => {
+        if (err) { console.log(err); return false; }
+        return true;     
+    });
+
+    if(updated) return { status: 1, updatedRoom: roomToUpdate};
+        else return { status: 0, updatedRoom: roomToUpdate};
+}
+
+// Get messages from one room
+const getRoomMessages = room => {
+    const foundRoom = rooms.find(r => r.name === room);
+    const messages = [...foundRoom.messages];
+    return messages;
+}
+
 module.exports = {
     getCurrentRooms,
     addRoomMember,
     removeRoomMember,
     isRoomNameAvailable,
     getRoomUsers,
-    resetRoomMembers
+    resetRoomMembers,
+    saveMessageToDB,
+    getRoomMessages
 }

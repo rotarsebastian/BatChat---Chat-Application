@@ -14,6 +14,7 @@ class Rooms extends Component {
 
     state = {
         rooms: null,
+        searchedRooms: null,
         username: null,
         searchValue: '',
         newRoomName: { val: '', valid: false },
@@ -36,12 +37,7 @@ class Rooms extends Component {
                 this.eventSource.addEventListener('message', e => {
                     try {
                         const rooms = JSON.parse(e.data);
-                        console.log(rooms);
-                        let searchedRooms = rooms;
-                        if(this.state.searchValue.length > 1) {
-                            searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(this.state.searchValue.toLowerCase()));
-                        }
-                        this.setState({ rooms: searchedRooms });
+                        this.setState({ rooms });
                     } catch (error) {
                         console.log(error);
                     }
@@ -106,8 +102,12 @@ class Rooms extends Component {
     }
 
     handleSearch = el => {
+        const { rooms } = this.state;
         const { value: inputValue } = el;
-        this.setState({ searchValue: inputValue });
+        if(inputValue.length < 2) this.setState({searchedRooms: null});
+        let searchedRooms = [...rooms];
+        searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(inputValue.toLowerCase()));
+        this.setState({ searchedRooms, searchValue: inputValue  });
     }
 
     handleLogout = () => {
@@ -117,8 +117,9 @@ class Rooms extends Component {
     }
 
     render () {
-        const { rooms, newRoomName, searchValue } = this.state;
+        let { rooms, newRoomName, searchValue, searchedRooms } = this.state;
         if(rooms === null) return <div>SPINNNNER</div>;
+        if(searchedRooms !== null) rooms = searchedRooms;
         return (
             <div className="Rooms">
                 <div className="rooms-title">Rooms</div>

@@ -52,6 +52,18 @@ class ChatRoom extends Component {
                         this.setState({username, room, users, socket});
                     });
 
+                    // Get room previous messages
+                    socket.on('loadPrevMesseges', oldMessages => {
+                        const { messages } = this.state;
+                        const { current: messagesContainer } = this.messagesBox;
+                        const updatedMessages = [...messages];
+                        oldMessages.forEach(oneMessage => updatedMessages.push(oneMessage));
+
+                        this.setState({ messages: updatedMessages });
+                        // Scroll down -- replace this with smooth scroll
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    });
+
                     // Message from server
                     socket.on('message', message => {
                         const { messages, peopleTyping } = this.state;
@@ -116,8 +128,10 @@ class ChatRoom extends Component {
     handleSubmit = (e, fromEnter) => {
         if(fromEnter !== true) e.preventDefault();
         const { sendMessage, socket } = this.state;
-        // Emit message to server
-        socket.emit('chatMessage', capitalize(sendMessage));
+        if(sendMessage.trim().length > 0) {
+            // Emit message to server
+            socket.emit('chatMessage', capitalize(sendMessage.trim()));
+        }
         this.setState({sendMessage: ''});
         if(fromEnter !== true) e.target.firstChild.firstChild.focus();
         this.textArea.current.style.height = ''; 
@@ -185,7 +199,7 @@ class ChatRoom extends Component {
                                         hideMyMessage = ' hide';
                                         bypassMessage = ' bypass';
                                     } 
-                                    if(messages[index - 1].username === message.username) {
+                                    if(messages[index - 1] && messages[index - 1].username === message.username) {
                                         sameExpeditor = ' close-up';
                                     }
                                 } 
@@ -209,7 +223,6 @@ class ChatRoom extends Component {
                                 type="text"
                                 ref={this.textArea}
                                 placeholder="Enter Message"
-                                required
                                 value={sendMessage}
                                 onChange={this.handleChange}
                                 onKeyDown={this.onEnterPress}

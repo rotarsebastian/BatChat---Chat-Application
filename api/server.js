@@ -3,9 +3,9 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const socketio = require('socket.io');
-const { formatMessage, saveMessageToDB } = require('./utils/messages');
+const { formatMessage } = require('./utils/messages');
 const { userJoin, getCurrentUser, userLeave } = require('./utils/users');
-const { getCurrentRooms, addRoomMember, removeRoomMember, getRoomUsers, resetRoomMembers } = require('./utils/rooms');
+const { getCurrentRooms, addRoomMember, removeRoomMember, getRoomUsers, resetRoomMembers, saveMessageToDB, getRoomMessages } = require('./utils/rooms');
 const mongoose = require('mongoose');
 
 global.globalVersion = 0;
@@ -89,6 +89,8 @@ io.on('connection', socket => {
 
         socket.join(res.user.room);
         globalVersion++;
+
+        socket.emit('loadPrevMesseges', getRoomMessages(room));
         
         if(res.newAdded) {
 
@@ -120,7 +122,7 @@ io.on('connection', socket => {
         const user = getCurrentUser(socket.id);
         const message = formatMessage(socket.id, user.username, msg);
         io.to(user.room).emit('message', message);
-        // saveMessageToDB(message);
+        saveMessageToDB(user.room, message);
     });
 
     //Listen for typing message
@@ -132,6 +134,7 @@ io.on('connection', socket => {
     // Runs when client disconnets
     socket.on('disconnect', async() => {
         console.log('USER DISCONNECTED');
+        globalVersion++;
         const user = userLeave(socket.id);
         if(user) {
             const response = await removeRoomMember(user.room, user.username);

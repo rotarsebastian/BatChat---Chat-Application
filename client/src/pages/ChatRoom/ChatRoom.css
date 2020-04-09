@@ -6,6 +6,7 @@ header .btn {
 
 .chat-container {
 	max-width: 1100px;
+	height: 480px;
 	background: #fff;
 	margin: 30px auto;
 	overflow: hidden;
@@ -20,6 +21,7 @@ header .btn {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	height: 68px;
 }
 
 .chat-main {
@@ -61,6 +63,7 @@ header .btn {
     border-bottom-left-radius: var(--border-radius);
 	background: #fff;
 	width: 75%;
+	height: 336px;
 }
 
 .chat-messages-container .chat-is-typing {
@@ -76,8 +79,8 @@ header .btn {
 	padding: 20px;
 	padding-bottom: 0;
 	margin-bottom: 20px;
-	height: calc(100% - 40px);
 	overflow-y: scroll;
+	height: 296px;
 }
 
 .chat-messages .left {
@@ -195,6 +198,7 @@ header .btn {
 }
 
 .chat-form-container {
+	height: 76px;
 	padding: 20px 30px;
 	background: var(--dark-color-a);
 	border-bottom-right-radius: var(--border-radius);
