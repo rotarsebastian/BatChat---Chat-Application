@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getCurrentRooms, isRoomNameAvailable } = require('../utils/rooms');
+const { getCurrentRooms, isRoomNameAvailable, getMoreRooms, getFirstRooms } = require('../utils/rooms');
 const Room = require('../models/Room');
 
 router.post('/', (req, res) => {
@@ -28,9 +28,16 @@ router.post('/', (req, res) => {
     .catch(err => console.log(err));
 });
 
+router.get('/morerooms/:skip', (req, res) => {
+    const { skip } = req.params;
+    getMoreRooms(parseInt(skip, 10), rooms => {
+        if(rooms) res.send({ status: 1, rooms });
+    });
+});
+
 router.get('/available/:roomName', (req, res) => {
     const { roomName } = req.params;
-    const foundRoom = isRoomNameAvailable(roomName);
+    const foundRoom = isRoomNameAvailable(decodeURIComponent(roomName));
     if(foundRoom === -1) res.status(200).json({ status: 1, isAvailable: 1});
         else res.status(200).json({ status: 0, isAvailable: 0});
 });
@@ -46,7 +53,7 @@ router.get('/sse', (req, res) => {
     setInterval(async() => {
         if(localVersion < globalVersion) {
             const data = await getCurrentRooms();
-            res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);
+            res.status(200).write(`data: ${JSON.stringify(data)}||${JSON.stringify({ forLoading: true })}` + '\n\n');
             localVersion = globalVersion;
         }
     }, 1000);

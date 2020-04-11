@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import auth from '../../helpers/auth';
-import { createRoom, isRoomNameAvailable } from '../../helpers/rooms';
+import { createRoom, isRoomNameAvailable, getMoreRooms } from '../../helpers/rooms';
 import { validateInputValue } from '../../helpers/validation';
 import { DebounceInput } from 'react-debounce-input';
-import './Rooms.css';
+import classes from './Rooms.module.css';
 
 class Rooms extends Component {
 
@@ -18,6 +18,7 @@ class Rooms extends Component {
         username: null,
         searchValue: '',
         newRoomName: { val: '', valid: false },
+        loadedItems: null,
         endpoint: 'http://127.0.0.1:9000',
     }
 
@@ -31,13 +32,15 @@ class Rooms extends Component {
             const res = await auth(token, 'rooms');
             if(res.status === 1) {
                 const { rooms, username } = res;
-                this.setState({ rooms, username });
+                this.setState({ rooms, username, loadedItems: rooms.length });
 
                 this.eventSource = new EventSource(`${this.state.endpoint}/rooms/sse`);
                 this.eventSource.addEventListener('message', e => {
+                    console.log('SSE fired!');
                     try {
-                        const rooms = JSON.parse(e.data);
-                        this.setState({ rooms });
+                        const rooms = JSON.parse(e.data.split('||')[0]);
+                        const isForLoading = JSON.parse(e.data.split('||')[1]);
+                        // this.setState({ rooms });
                     } catch (error) {
                         console.log(error);
                     }
@@ -55,7 +58,7 @@ class Rooms extends Component {
         if(newRoomName.isValid && username.length > 0) {
             const res = await createRoom(newRoomName.val, username);
             if(res.status === 0) return console.log(res);
-            e.target.previousSibling.classList.remove('show');
+            e.target.previousSibling.classList.remove(classes.show);
             this.setState({newRoomName: { val: '', isValid: false }});
         }
     }
@@ -85,29 +88,29 @@ class Rooms extends Component {
             if(isValid) {
                 const res = await isRoomNameAvailable(newRoomName);
                 if(res.isAvailable === 1) {
-                    validClass.add('show');
-                    errorClass.remove('show');
+                    validClass.add(classes.show);
+                    errorClass.remove(classes.show);
                     return true;
                 } else {
-                    errorClass.add('show');
-                    validClass.remove('show');
+                    errorClass.add(classes.show);
+                    validClass.remove(classes.show);
                     return false;
                 }
             }
         } else {
-            validClass.remove('show');
-            errorClass.remove('show');
+            validClass.remove(classes.show);
+            errorClass.remove(classes.show);
             return false;
         }
     }
 
     handleSearch = el => {
-        const { rooms } = this.state;
-        const { value: inputValue } = el;
-        if(inputValue.length < 2) this.setState({searchedRooms: null});
-        let searchedRooms = [...rooms];
-        searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(inputValue.toLowerCase()));
-        this.setState({ searchedRooms, searchValue: inputValue  });
+        // const { rooms } = this.state;
+        // const { value: inputValue } = el;
+        // if(inputValue.length < 2) this.setState({searchedRooms: null});
+        // let searchedRooms = [...rooms];
+        // searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(inputValue.toLowerCase()));
+        // this.setState({ searchedRooms, searchValue: inputValue  });
     }
 
     handleLogout = () => {
@@ -116,49 +119,59 @@ class Rooms extends Component {
         history.push('/authentication');
     }
 
+    showMoreRooms = async() => {
+        const { loadedItems, rooms } = this.state;
+        const res = await getMoreRooms(loadedItems);
+        if(res && res.status === 1) {
+            const newRooms = [...rooms].concat(res.rooms);
+            this.setState({rooms: newRooms});
+        }
+    }
+
     render () {
         let { rooms, newRoomName, searchValue, searchedRooms } = this.state;
         if(rooms === null) return <div>SPINNNNER</div>;
         if(searchedRooms !== null) rooms = searchedRooms;
         return (
-            <div className="Rooms">
-                <div className="rooms-title">Rooms</div>
-                <div className="rooms-search-bar">
-                    <div className="rooms-search-icon"><i className="fas fa-search"></i></div>
+            <div className={classes.Rooms}>
+                <div className={classes['rooms-title']}>Rooms</div>
+                <div className={classes['rooms-search-bar']}>
+                    <div className={classes['rooms-search-icon']}><i className="fas fa-search"></i></div>
                     <DebounceInput
-                        className="rooms-search-bar-input"
+                        className={classes['rooms-search-bar-input']}
                         placeholder="Search for a room" 
                         minLength={1}
                         value={searchValue}
                         debounceTimeout={400}
                         onChange={({ target }) => this.handleSearch(target)} />
                 </div>
-                <div className="rooms-list">
+                <div className={classes['rooms-list']}>
                     { rooms.length === 0 ? <div>No rooms matching your search!</div> : undefined } 
                     {
                         rooms.map(room => {
                             return (
-                                <div className="room-element" key={room._id} id={room._id} >
-                                    <div className="room-name">{room.name}</div>
-                                    <div className="room-active-users">{room.users.length} Members</div>
-                                    <button onClick={() => this.handleJoinRoom(room.name)} className="rooms-join-room">Join Room</button>
+                                <div className={classes['room-element']} key={room._id} id={room._id} >
+                                    <div className={classes['room-name']}>{room.name}</div>
+                                    <div className={classes['room-active-users']}>{room.users.length} Members</div>
+                                    <button onClick={() => this.handleJoinRoom(room.name)} className={classes['rooms-join-room']}>Join Room</button>
                                 </div>
                             );
                         })
                     }
                 </div>
-                <div className="rooms-add-room-container">
-                    <div className="rooms-room-already-taken">This room name is already taken!</div>
-                    <input  id="rooms-new-room-input" type="text" value={newRoomName.val} 
+                <button className="" onClick={this.showMoreRooms}>Show more</button>
+                <div className={classes['rooms-add-room-container']}>
+                    <div className={classes['rooms-room-already-taken']}>This room name is already taken!</div>
+                    <input className={classes['rooms-new-room-input']} type="text" value={newRoomName.val} 
                         onChange={this.handleInputChange} 
                         placeholder="Your room name"
                         maxLength="20"
                         minLength="3"
                     />
-                    <span className="rooms-new-room-verification" ><i className="fas fa-check"></i></span>
-                    <button onClick={this.handleCreateRoom} className="rooms-create-new-room btn">Add new room</button>
+                    <span className={classes['rooms-new-room-verification']} ><i className="fas fa-check"></i></span>
+                    <button onClick={this.handleCreateRoom} className={classes['rooms-create-new-room']}>Add new room</button>
                 </div>
-                <button onClick={this.handleLogout} >Logout</button>
+                <button onClick={this.handleLogout}>Logout</button>
             </div>
         );
     }

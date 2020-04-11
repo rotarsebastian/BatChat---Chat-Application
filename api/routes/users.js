@@ -3,7 +3,7 @@ const validate = require('../helpers/validation');
 const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const { getCurrentRooms } = require('../utils/rooms');
+const { getFirstRooms } = require('../utils/rooms');
 
 
 router.post('/register', (req, res) => {
@@ -75,8 +75,12 @@ router.post('/auth', async(req, res) => {
     try {
         const user = jwt.verify(token, accessTokenSecret);
         let response = { status: 1, msg: 'User authorized!', username: user.username };
-        if(options === 'rooms') response.rooms = await getCurrentRooms();
-        if(user) res.status(200).send(response);
+        if(options === 'rooms') {
+            getFirstRooms(rooms => {
+                response.rooms = rooms;
+                if(user) res.status(200).send(response);
+            });
+        }
     } catch(err) {
         res.status(200).send({ status: 0, msg: 'User not authorized!'});
     }

@@ -10,6 +10,20 @@ const getCurrentRooms = async() => {
     return rooms;
 }
 
+const getFirstRooms = (cb) => {
+    Room.find({}).limit(5).sort([['date', -1]]).exec((err, result) => {
+        if (err) return console.log(err);
+            else cb(result);
+    });
+}
+
+const getMoreRooms = (skip, cb) => {
+    Room.find({}).skip(skip).limit(5).sort([['date', -1]]).exec((err, result) => {
+        if (err) return console.log(err);
+            else cb(result);
+    });
+}
+
 // Add room member
 const addRoomMember = async(room, username) => {
     let updated = false;
@@ -102,5 +116,7 @@ module.exports = {
     getRoomUsers,
     resetRoomMembers,
     saveMessageToDB,
-    getRoomMessages
+    getRoomMessages,
+    getMoreRooms,
+    getFirstRooms
 }
