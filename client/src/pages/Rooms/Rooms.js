@@ -4,6 +4,8 @@ import { createRoom, isRoomNameAvailable, getMoreRooms } from '../../helpers/roo
 import { validateInputValue } from '../../helpers/validation';
 import { DebounceInput } from 'react-debounce-input';
 import classes from './Rooms.module.css';
+import RoomListElement from '../../components/RoomListElement/RoomListElement';
+import CreateNewRoom from '../../components/CreateNewRoom/CreateNewRoom';
 
 class Rooms extends Component {
 
@@ -38,8 +40,8 @@ class Rooms extends Component {
                 this.eventSource.addEventListener('message', e => {
                     console.log('SSE fired!');
                     try {
-                        const rooms = JSON.parse(e.data.split('||')[0]);
-                        const isForLoading = JSON.parse(e.data.split('||')[1]);
+                        // const rooms = JSON.parse(e.data.split('||')[0]);
+                        // const isForLoading = JSON.parse(e.data.split('||')[1]);
                         // this.setState({ rooms });
                     } catch (error) {
                         console.log(error);
@@ -123,8 +125,9 @@ class Rooms extends Component {
         const { loadedItems, rooms } = this.state;
         const res = await getMoreRooms(loadedItems);
         if(res && res.status === 1) {
+            if(res.rooms.length === 0 ) return console.log('No more rooms to load!');
             const newRooms = [...rooms].concat(res.rooms);
-            this.setState({rooms: newRooms});
+            this.setState({rooms: newRooms, loadedItems: loadedItems + res.rooms.length});
         }
     }
 
@@ -134,6 +137,7 @@ class Rooms extends Component {
         if(searchedRooms !== null) rooms = searchedRooms;
         return (
             <div className={classes.Rooms}>
+                <button onClick={this.handleLogout}>Logout</button>
                 <div className={classes['rooms-title']}>Rooms</div>
                 <div className={classes['rooms-search-bar']}>
                     <div className={classes['rooms-search-icon']}><i className="fas fa-search"></i></div>
@@ -147,31 +151,10 @@ class Rooms extends Component {
                 </div>
                 <div className={classes['rooms-list']}>
                     { rooms.length === 0 ? <div>No rooms matching your search!</div> : undefined } 
-                    {
-                        rooms.map(room => {
-                            return (
-                                <div className={classes['room-element']} key={room._id} id={room._id} >
-                                    <div className={classes['room-name']}>{room.name}</div>
-                                    <div className={classes['room-active-users']}>{room.users.length} Members</div>
-                                    <button onClick={() => this.handleJoinRoom(room.name)} className={classes['rooms-join-room']}>Join Room</button>
-                                </div>
-                            );
-                        })
-                    }
+                    { rooms.map(room => <RoomListElement key={room._id} room={room} joinRoom={() => this.handleJoinRoom(room.name)} />) }
                 </div>
                 <button className="" onClick={this.showMoreRooms}>Show more</button>
-                <div className={classes['rooms-add-room-container']}>
-                    <div className={classes['rooms-room-already-taken']}>This room name is already taken!</div>
-                    <input className={classes['rooms-new-room-input']} type="text" value={newRoomName.val} 
-                        onChange={this.handleInputChange} 
-                        placeholder="Your room name"
-                        maxLength="20"
-                        minLength="3"
-                    />
-                    <span className={classes['rooms-new-room-verification']} ><i className="fas fa-check"></i></span>
-                    <button onClick={this.handleCreateRoom} className={classes['rooms-create-new-room']}>Add new room</button>
-                </div>
-                <button onClick={this.handleLogout}>Logout</button>
+                <CreateNewRoom newRoomName={newRoomName} input={this.handleInputChange} createRoom={this.handleCreateRoom} />
             </div>
         );
     }

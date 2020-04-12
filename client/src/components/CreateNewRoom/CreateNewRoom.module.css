@@ -1,0 +1,35 @@
+.rooms-room-already-taken {
+    font-size: 12px;
+    padding-left: 5px;
+    color: var(--error-color);
+    opacity: 0;
+    transition: .3s;
+}
+
+.rooms-room-already-taken.show {
+    opacity: 1;
+}
+
+.rooms-add-room-container input.rooms-new-room-input {
+    padding: .75rem 1.2rem;
+    width: 15rem;
+}
+
+.rooms-add-room-container span.rooms-new-room-verification {
+    opacity: 0;
+    transition: .3s;
+    margin: 0 .8rem;
+}
+
+.rooms-add-room-container span.rooms-new-room-verification.show {
+    opacity: 1;
+}
+
+.rooms-add-room-container button.rooms-create-new-room {
+    height: 37px;
+    background: salmon;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+}
+

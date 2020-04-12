@@ -58,8 +58,6 @@ router.get('/sse', (req, res) => {
         }
     }, 1000);
 
-    updatedRoom = null;
-
     res.on('close', () => {
         if (!res.finished) {
             console.log("SSE is now CLOSED");
