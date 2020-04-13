@@ -37,16 +37,32 @@ class Rooms extends Component {
                 this.setState({ rooms, username, loadedItems: rooms.length });
 
                 this.eventSource = new EventSource(`${this.state.endpoint}/rooms/sse`);
+
                 this.eventSource.addEventListener('message', e => {
-                    console.log('SSE fired!');
-                    try {
-                        // const rooms = JSON.parse(e.data.split('||')[0]);
-                        // const isForLoading = JSON.parse(e.data.split('||')[1]);
-                        // this.setState({ rooms });
-                    } catch (error) {
-                        console.log(error);
+                    if(e.data !== '0') {
+                        try {
+                            // const rooms = JSON.parse(e.data.split('||')[0]);
+                            const { touchedRoom } = JSON.parse(e.data.split('||')[1]);
+                            if(!!touchedRoom) {
+                                const { isNew } = JSON.parse(e.data.split('||')[2]);
+                                const { rooms: currentRooms } = this.state;
+                                const newRooms = [...currentRooms];
+                                if(isNew) {
+                                    delete touchedRoom.isNew;
+                                    const foundRoomIndex = newRooms.findIndex(room => room.name === touchedRoom.name);
+                                    if(foundRoomIndex === -1) newRooms.push(touchedRoom);
+                                } else {
+                                    const foundRoomIndex = rooms.findIndex(room => room.name === touchedRoom.name);
+                                    if(foundRoomIndex !== -1) newRooms[foundRoomIndex] = touchedRoom;
+                                }
+                                this.setState({ rooms: newRooms });
+                            }
+                        } catch (error) {
+                            console.log(error);
+                        }
                     }
-                });
+                }, false);
+
             } else {
                 history.push('/authentication');
                 return;

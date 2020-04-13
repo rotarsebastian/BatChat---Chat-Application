@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getCurrentRooms, isRoomNameAvailable, getMoreRooms, getFirstRooms } = require('../utils/rooms');
+const { getCurrentRooms, isRoomNameAvailable, getMoreRooms, getFirstRooms, getTouchedRoom } = require('../utils/rooms');
 const Room = require('../models/Room');
 
 router.post('/', (req, res) => {
@@ -21,6 +21,7 @@ router.post('/', (req, res) => {
             .then(async(room) => { 
                 const rooms = await getCurrentRooms();
                 globalVersion++;
+                touchedRoom = { ...room._doc, isNew: '1816b4f4-666a-432b-b4eb-96be70e886c1' };
                 return res.send({ status: 1, message: `SUCCESS: Room ${room.name} is now created!`, rooms, code: 200 });
             })
             .catch(err => console.log(err));
@@ -51,9 +52,17 @@ router.get('/sse', (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
     console.log('Client connected to SSE!');
     setInterval(async() => {
+        res.status(200).write('data: 0' + '\n\n');
         if(localVersion < globalVersion) {
             const data = await getCurrentRooms();
-            res.status(200).write(`data: ${JSON.stringify(data)}||${JSON.stringify({ forLoading: true })}` + '\n\n');
+            let roomToModify = null;
+            let isNew = false;
+            if(!touchedRoom.hasOwnProperty('isNew')) roomToModify = getTouchedRoom(touchedRoom);
+                else {
+                    isNew = true;
+                    roomToModify = touchedRoom;
+                }
+            res.status(200).write(`data: ${JSON.stringify(data)}||${JSON.stringify({ touchedRoom: roomToModify })}||${JSON.stringify({ isNew })}` + '\n\n');
             localVersion = globalVersion;
         }
     }, 1000);

@@ -9,6 +9,7 @@ const { getCurrentRooms, addRoomMember, removeRoomMember, getRoomUsers, resetRoo
 const mongoose = require('mongoose');
 
 global.globalVersion = 0;
+global.touchedRoom = null;
 global.jwt;
 jwt = require('jsonwebtoken');
 
@@ -89,6 +90,7 @@ io.on('connection', socket => {
 
         socket.join(res.user.room);
         globalVersion++;
+        touchedRoom = res.user.room;
 
         socket.emit('loadPrevMesseges', getRoomMessages(room));
         
@@ -136,6 +138,7 @@ io.on('connection', socket => {
         console.log('USER DISCONNECTED');
         globalVersion++;
         const user = userLeave(socket.id);
+        touchedRoom = user.room;
         if(user) {
             const response = await removeRoomMember(user.room, user.username);
             if(response.status === 1) {

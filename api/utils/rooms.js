@@ -108,6 +108,11 @@ const getRoomMessages = room => {
     return messages;
 }
 
+// Get touched room
+const getTouchedRoom = room => {
+    return rooms.find(r => r.name === room);
+}
+
 module.exports = {
     getCurrentRooms,
     addRoomMember,
@@ -118,5 +123,6 @@ module.exports = {
     saveMessageToDB,
     getRoomMessages,
     getMoreRooms,
-    getFirstRooms
+    getFirstRooms,
+    getTouchedRoom
 }
