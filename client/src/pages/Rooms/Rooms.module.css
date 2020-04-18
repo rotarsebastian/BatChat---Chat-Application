@@ -1,18 +1,50 @@
 .Rooms {
-    padding: 1rem;
+    width: 100%;
+    max-width: 58rem;
+}
+
+.Rooms .rooms-logout {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 2rem;
+}
+
+.Rooms .rooms-logout i {
+    border-radius: 50px;
+    padding: 5px;
+    border: 1px solid transparent;
+    box-shadow: 0 0 15px #ffffff2e;
+    cursor: pointer;
+    color: #fff;
 }
 
 .Rooms .rooms-title {
     text-align: center;
-    padding: 3rem;
-    font-size: 2rem;
+    padding: 2rem;
+    font-size: 1.5rem;
+    color: #fff;
+    font-weight: 500;
+}
+
+.Rooms .rooms-list {
+    max-height: 41rem;
+    overflow: scroll;
+    margin: 1rem 0;
+    padding: 0 1.3rem;
+    margin-top: 2rem;
+}
+
+.Rooms .rooms-empty {
+    text-align: center;
+    color: #fff;
+    margin: 1rem 0;
 }
 
 .Rooms .rooms-search-bar {
     justify-content: center;
     display: flex;
     align-items: center;
-    height: 100%;
     position: relative;
     margin: 0 1rem;
     margin-bottom: 1rem;
@@ -30,10 +62,17 @@
     transition: .3s;
     padding: 0 12px;
     padding-right: 28px;
+    color: #fff;
+    background: var(--light-color);
+    font-weight: 400;
+}
+
+.Rooms .rooms-search-bar-input::placeholder {
+    color: rgba(255, 255, 255, 0.781);
 }
 
 .Rooms .rooms-search-bar-input:focus {
-    box-shadow: 2px 3px 3px 0 rgba(32,33,36,0.28);
+    box-shadow: 5px 4px 10px #85a2af34;
 }
 
 .Rooms .rooms-search-icon{
@@ -43,4 +82,26 @@
     right: 2px;
     width: 15px;
     transform: translate(-50%, -50%);
+    color: #fff;
+}
+
+.Rooms .rooms-new-room {
+    color: #fff;
+    padding: 0 1.3rem;
+    padding-top: 1rem;
+    cursor: pointer;
+}
+
+.Rooms .rooms-new-room i {
+    margin-right: .35rem;
+    transition: .3s;
+}
+
+.Rooms .rooms-new-room:hover i {
+    transform: scale(1.35);
+    margin-right: .55rem;
+}
+
+.show {
+    opacity: 1 !important;
 }

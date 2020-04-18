@@ -5,6 +5,10 @@ const RoomSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    createdBy: {
+        type: String,
+        required: true
+    },
     users: {
         type: Array,
         required: true

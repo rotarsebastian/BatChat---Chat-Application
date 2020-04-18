@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import auth from '../../helpers/auth';
-import { createRoom, isRoomNameAvailable, getMoreRooms } from '../../helpers/rooms';
+import { createRoom, isRoomNameAvailable, getMoreRooms, deleteRoom } from '../../helpers/rooms';
 import { validateInputValue } from '../../helpers/validation';
 import { DebounceInput } from 'react-debounce-input';
 import classes from './Rooms.module.css';
@@ -12,6 +12,7 @@ class Rooms extends Component {
     constructor(props) {
         super(props);
         this.eventSource = null;
+        this.roomsContainer = React.createRef();
     }
 
     state = {
@@ -21,6 +22,8 @@ class Rooms extends Component {
         searchValue: '',
         newRoomName: { val: '', valid: false },
         loadedItems: null,
+        showCreateRoom: false,
+        animateHideCreateRoom: false,
         endpoint: 'http://127.0.0.1:9000',
     }
 
@@ -36,6 +39,8 @@ class Rooms extends Component {
                 const { rooms, username } = res;
                 this.setState({ rooms, username, loadedItems: rooms.length });
 
+                this.roomsContainer.current.addEventListener('scroll', () => this.lazyLoadRooms(this.roomsContainer.current));
+
                 this.eventSource = new EventSource(`${this.state.endpoint}/rooms/sse`);
 
                 this.eventSource.addEventListener('message', e => {
@@ -45,17 +50,30 @@ class Rooms extends Component {
                             const { touchedRoom } = JSON.parse(e.data.split('||')[1]);
                             if(!!touchedRoom) {
                                 const { isNew } = JSON.parse(e.data.split('||')[2]);
-                                const { rooms: currentRooms } = this.state;
+                                const { isDeleted } = JSON.parse(e.data.split('||')[3]);
+                                const { rooms: currentRooms, loadedItems } = this.state;
                                 const newRooms = [...currentRooms];
                                 if(isNew) {
                                     delete touchedRoom.isNew;
                                     const foundRoomIndex = newRooms.findIndex(room => room.name === touchedRoom.name);
-                                    if(foundRoomIndex === -1) newRooms.push(touchedRoom);
+                                    if(foundRoomIndex === -1) {
+                                        newRooms.unshift(touchedRoom);
+                                        this.setState({ rooms: newRooms, loadedItems: loadedItems + 1 });
+                                    }
+                                } else if(isDeleted) {
+                                    delete touchedRoom.isDeleted;
+                                    const foundRoomIndex = newRooms.findIndex(room => room.name === touchedRoom.name);
+                                    if(foundRoomIndex !== -1) {
+                                        newRooms.splice(foundRoomIndex, 1);
+                                        this.setState({ rooms: newRooms, loadedItems: loadedItems - 1 });
+                                    }
                                 } else {
                                     const foundRoomIndex = rooms.findIndex(room => room.name === touchedRoom.name);
-                                    if(foundRoomIndex !== -1) newRooms[foundRoomIndex] = touchedRoom;
+                                    if(foundRoomIndex !== -1) {
+                                        newRooms[foundRoomIndex] = touchedRoom;
+                                        this.setState({ rooms: newRooms });
+                                    }
                                 }
-                                this.setState({ rooms: newRooms });
                             }
                         } catch (error) {
                             console.log(error);
@@ -77,6 +95,7 @@ class Rooms extends Component {
             const res = await createRoom(newRoomName.val, username);
             if(res.status === 0) return console.log(res);
             e.target.previousSibling.classList.remove(classes.show);
+            this.handleShowCreateRoom();
             this.setState({newRoomName: { val: '', isValid: false }});
         }
     }
@@ -85,10 +104,24 @@ class Rooms extends Component {
         if(this.eventSource) this.eventSource.close();
     }
 
+    lazyLoadRooms = el => {
+        if(el.scrollHeight - el.scrollTop === el.clientHeight) this.showMoreRooms();
+    }
+
     handleJoinRoom = roomName => {
         this.eventSource.close();
         const { history } = this.props;
         history.push('/chatRoom', { roomName });
+    }
+
+    handleDeleteRoom = async(e, room) => {
+        e.stopPropagation();
+        const { username } = this.state;
+        const token = localStorage.getItem('userToken');
+        if(username === room.createdBy) {
+            const res = await deleteRoom(room, token);
+            if(res.status === 0) return console.log(res);
+        }
     }
 
     handleInputChange = async(e) => {
@@ -123,12 +156,12 @@ class Rooms extends Component {
     }
 
     handleSearch = el => {
-        // const { rooms } = this.state;
-        // const { value: inputValue } = el;
-        // if(inputValue.length < 2) this.setState({searchedRooms: null});
-        // let searchedRooms = [...rooms];
-        // searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(inputValue.toLowerCase()));
-        // this.setState({ searchedRooms, searchValue: inputValue  });
+        const { rooms } = this.state;
+        const { value: inputValue } = el;
+        if(inputValue.length < 2) this.setState({searchedRooms: null});
+        let searchedRooms = [...rooms];
+        searchedRooms = rooms.filter(room => room.name.toLowerCase().includes(inputValue.toLowerCase()));
+        this.setState({ searchedRooms, searchValue: inputValue  });
     }
 
     handleLogout = () => {
@@ -142,19 +175,35 @@ class Rooms extends Component {
         const res = await getMoreRooms(loadedItems);
         if(res && res.status === 1) {
             if(res.rooms.length === 0 ) return console.log('No more rooms to load!');
+                else console.log('Rooms loaded!');
             const newRooms = [...rooms].concat(res.rooms);
             this.setState({rooms: newRooms, loadedItems: loadedItems + res.rooms.length});
         }
     }
 
+    handleShowCreateRoom = () => {
+        const { showCreateRoom } = this.state;
+        if(showCreateRoom) {
+            this.setState({ animateHideCreateRoom: true });
+            setTimeout(() => {
+                this.setState({ showCreateRoom: !showCreateRoom});
+            }, 500)
+        } else { 
+            this.setState({ animateHideCreateRoom: false });
+            this.setState({ showCreateRoom: !showCreateRoom});
+        }
+    }
+
     render () {
-        let { rooms, newRoomName, searchValue, searchedRooms } = this.state;
+        let { rooms, newRoomName, searchValue, searchedRooms, username, showCreateRoom, animateHideCreateRoom } = this.state;
         if(rooms === null) return <div>SPINNNNER</div>;
         if(searchedRooms !== null) rooms = searchedRooms;
         return (
             <div className={classes.Rooms}>
-                <button onClick={this.handleLogout}>Logout</button>
-                <div className={classes['rooms-title']}>Rooms</div>
+                <div className={classes['rooms-logout']}>
+                    <i className="fas fa-sign-out-alt" onClick={this.handleLogout}></i>
+                </div>
+                <div className={classes['rooms-title']}>Active rooms</div>
                 <div className={classes['rooms-search-bar']}>
                     <div className={classes['rooms-search-icon']}><i className="fas fa-search"></i></div>
                     <DebounceInput
@@ -165,12 +214,12 @@ class Rooms extends Component {
                         debounceTimeout={400}
                         onChange={({ target }) => this.handleSearch(target)} />
                 </div>
-                <div className={classes['rooms-list']}>
-                    { rooms.length === 0 ? <div>No rooms matching your search!</div> : undefined } 
-                    { rooms.map(room => <RoomListElement key={room._id} room={room} joinRoom={() => this.handleJoinRoom(room.name)} />) }
+                <div className={classes['rooms-new-room']} onClick={this.handleShowCreateRoom} ><i className={showCreateRoom ? 'fas fa-chevron-up' : 'fas fa-plus-circle' }></i>{ showCreateRoom ? 'Hide menu' : 'Create a room' }</div>
+                { showCreateRoom ? <CreateNewRoom animateHideCreateRoom={animateHideCreateRoom} newRoomName={newRoomName} input={this.handleInputChange} createRoom={this.handleCreateRoom} /> : undefined }
+                <div className={classes['rooms-list']} ref={this.roomsContainer}>
+                    { rooms.length === 0 ? <div className={classes['rooms-empty']}>No active rooms at the moment!</div> : undefined } 
+                    { rooms.map(room => <RoomListElement deleteRoom={(e) => this.handleDeleteRoom(e, room)} username={username} key={room._id} room={room} joinRoom={() => this.handleJoinRoom(room.name)} />) }
                 </div>
-                <button className="" onClick={this.showMoreRooms}>Show more</button>
-                <CreateNewRoom newRoomName={newRoomName} input={this.handleInputChange} createRoom={this.handleCreateRoom} />
             </div>
         );
     }

@@ -1,9 +1,15 @@
 /* Authentication Page */
 .auth-container {
-	max-width: 500px;
-	margin: 80px auto;
+	max-width: 450px;
 	color: #fff;
 	box-shadow: 0 0 10px #008ecc;
+	border-radius: 4px;
+	width: 100%;
+    right: 0;
+    position: absolute;
+    top: 25%;
+    left: 0;
+    margin: auto;
 }
 
 .auth-header {
@@ -106,6 +112,7 @@
 	width: 100%;
 	border-radius: var(--border-radius);
 	transition: .2s;
+	color: #fff;
 }
 
 .auth-main .btn:hover {

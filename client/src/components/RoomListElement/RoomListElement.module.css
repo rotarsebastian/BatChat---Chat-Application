@@ -2,13 +2,22 @@
     display: flex;
     justify-content: space-between;
     padding: 1rem;
-    border: 1px solid red;
-    margin: .4rem 0;
+    box-shadow: 5px 8px 10px #85a2af45;
+    border-radius: var(--border-radius);
+    background: #667aa2;
+    color: #fff;
+    margin: 1rem 0;
     margin-top: 0;
+    transition: .3s;
+    cursor: pointer;
+}
+
+.room-element:hover {
+    transform: scale(1.02);
 }
 
 .room-element .room-name {
-    width: 25%;
+    width: 90%;
     display: flex;
     align-items: center;
 }
@@ -16,13 +25,29 @@
 .room-element .room-active-users {
     display: flex;
     align-items: center;
+    font-size: 13px;
 }
 
-.room-element button.rooms-join-room {
-    width: 20%;
-    padding: .75rem 1.2rem;
-    background: green;
-    color: white;
+.room-element .room-active-users i {
+    margin-left: .45rem;
+    border-radius: 50px;
+    padding: 5px;
+    border: 1px solid transparent;
+    box-shadow: 0 0 15px #ffffff1f;
+    font-size: 16px;
+}
+
+.room-element .rooms-join-room:hover {
+    color: var(--error-color);
+}
+
+.room-element .rooms-join-room {
+    width: 5%;
+    color: var(--enabled-color);
     font-size: 1rem;
-    font-weight: bold;
+    cursor: pointer;
+    margin-right: .15rem;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
 }

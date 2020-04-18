@@ -47,3 +47,19 @@ export const getMoreRooms = async(skip) => {
     }
 };
 
+export const deleteRoom = async(room, token) => {
+    try {
+        const options = {
+            method: 'POST',
+            uri: 'http://127.0.0.1:9000/rooms/delete',
+            body: { room, token },
+            json: true 
+        };
+        const response = await request(options);
+        return response;
+    }
+    catch(err) {
+        return console.log('Server under maintanence!', err);
+    }
+};
+

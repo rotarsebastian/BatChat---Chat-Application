@@ -11,7 +11,7 @@ const getCurrentRooms = async() => {
 }
 
 const getFirstRooms = (cb) => {
-    Room.find({}).limit(5).sort([['date', -1]]).exec((err, result) => {
+    Room.find({}).limit(10).sort([['date', -1]]).exec((err, result) => {
         if (err) return console.log(err);
             else cb(result);
     });

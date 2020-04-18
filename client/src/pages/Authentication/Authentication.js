@@ -16,6 +16,7 @@ class Authentication extends Component {
     constructor(props) {
         super(props);
         this.formEl = React.createRef();
+        this.wholeContainer = React.createRef();
         this.state = initialState;
     }
 
@@ -114,8 +115,13 @@ class Authentication extends Component {
         const allValidEl = Array.from(this.formEl.current.querySelectorAll('.verification.valid')).length;
         const formButtonClasses = this.formEl.current.lastChild.classList;
 
-        if(allValidEl === validInputs) formButtonClasses.add('valid');
-            else formButtonClasses.remove('valid');
+        if(allValidEl === validInputs) { 
+            formButtonClasses.add('valid');
+            this.formEl.current.lastChild.disabled = false;
+        } else {
+            formButtonClasses.remove('valid');
+            this.formEl.current.lastChild.disabled = true;
+        }
     }
 
     switchPageHandler = () => {
@@ -125,10 +131,12 @@ class Authentication extends Component {
         elToBeCleaned.map(el => el.classList.remove('error', 'valid'));
         if(isRegisterPage) {
             const { username, password } = this.state;
+            this.animateCSS(this.wholeContainer.current, 'flipInX');
             const isValidForm = validateForm([username, password], this.formEl.current, true);
             if(isValidForm) formButtonClasses.add('valid');
             this.setState({...initialState, isRegisterPage: false});
         }  else { 
+            this.animateCSS(this.wholeContainer.current, 'flipInY');
             formButtonClasses.remove('valid');
             this.setState({...initialState, isRegisterPage: true});
         }
@@ -192,12 +200,25 @@ class Authentication extends Component {
         return true;
     }
 
+    animateCSS = (element, animationName, callback) => {
+        element.classList.remove('fadeInDown');
+        element.classList.add('animated', animationName);
+
+        const handleAnimationEnd = () => {
+            element.classList.remove('animated', animationName);
+            element.removeEventListener('animationend', handleAnimationEnd);
+            if (typeof callback === 'function') callback()
+        }
+
+        element.addEventListener('animationend', handleAnimationEnd)
+    }
+
     render () {
         const { username, password, rePassword, isRegisterPage, email } = this.state;
         let pageName = null;
         if(!isRegisterPage) pageName = 'Login';
         return (
-            <div className="auth-container">
+            <div className="auth-container animated fadeInDown" ref={this.wholeContainer}>
                 <header className="auth-header">
                     <h1><i className="fas fa-comments"></i> BatChat</h1>
                     <p className="motto">Secured messages. No Ads.</p>
@@ -257,7 +278,7 @@ class Authentication extends Component {
                             }
                             <span className="verification" ><i className="fas fa-check"></i></span>
                         </div>
-                        <button type="submit" className="btn">{isRegisterPage ? 'Register' : 'Join Chat'}</button>
+                        <button type="submit" disabled={true} className="btn">{isRegisterPage ? 'Register' : 'Join Chat'}</button>
                     </form>
                     { isRegisterPage 
                         ? 
