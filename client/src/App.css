@@ -45,7 +45,7 @@ input[type='text'], input[type='password'] , select {
 	cursor: pointer;
 	padding: 5px 15px;
 	background: var(--light-color);
-	color: var(--blue-1);
+	color: #fff;
 	border: 0;
 	font-size: 17px;
 	outline: none;

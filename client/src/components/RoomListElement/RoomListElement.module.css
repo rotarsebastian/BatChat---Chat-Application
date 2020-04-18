@@ -53,4 +53,13 @@
     border: none;
     outline: none;
     background: transparent;
+    margin: .5rem;
+    margin-right: .4rem;
+}
+
+.room-spinner {
+    margin-left: .5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

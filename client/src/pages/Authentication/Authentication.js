@@ -232,6 +232,7 @@ class Authentication extends Component {
                                 type="text"
                                 name="username"
                                 id="username"
+                                autoComplete="off"
                                 value={username.val}
                                 onChange={this.handleChange}
                                 onKeyPress={(e) => !(/^[aA-zZ0-9-]+$/g.test(e.key)) ? e.preventDefault() : undefined}
@@ -246,6 +247,7 @@ class Authentication extends Component {
                                     type="text"
                                     name="email"
                                     id="email"
+                                    autoComplete="off"
                                     value={email.val}
                                     onChange={this.handleChange}
                                     placeholder="Enter email..."

@@ -73,7 +73,7 @@ class Rooms extends Component {
                                         }, 500);
                                     }
                                 } else {
-                                    const foundRoomIndex = rooms.findIndex(room => room.name === touchedRoom.name);
+                                    const foundRoomIndex = newRooms.findIndex(room => room.name === touchedRoom.name);
                                     if(foundRoomIndex !== -1) {
                                         newRooms[foundRoomIndex] = touchedRoom;
                                         this.setState({ rooms: newRooms });
@@ -210,6 +210,7 @@ class Rooms extends Component {
         let { rooms, newRoomName, searchValue, searchedRooms, username, showCreateRoom, animateHideCreateRoom, removingRoom } = this.state;
         if(rooms === null) return (<div className={classes['rooms-spinner']}><ClipLoader size={50} color={"#fff"} /></div>);
         if(searchedRooms !== null) rooms = searchedRooms;
+        if(rooms.length < 9) this.showMoreRooms();
         return (
             <div className={classes.Rooms}>
                 <div className={classes['rooms-logout']}>
@@ -230,7 +231,7 @@ class Rooms extends Component {
                 { showCreateRoom ? <CreateNewRoom animateHideCreateRoom={animateHideCreateRoom} newRoomName={newRoomName} input={this.handleInputChange} createRoom={this.handleCreateRoom} /> : undefined }
                 <div className={classes['rooms-list']} ref={this.roomsContainer}>
                     { rooms.length === 0 ? <div className={classes['rooms-empty']}>No active rooms at the moment!</div> : undefined } 
-                    { rooms.map(room => <RoomListElement removingRoom={removingRoom} deleteRoom={(e) => this.handleDeleteRoom(e, room)} username={username} key={room._id} room={room} joinRoom={() => this.handleJoinRoom(room.name)} />) }
+                    { rooms.map(room => <RoomListElement removingRoom={removingRoom} deleteRoom={this.handleDeleteRoom} username={username} key={room._id} room={room} joinRoom={() => this.handleJoinRoom(room.name)} />) }
                 </div>
             </div>
         );

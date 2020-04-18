@@ -4,15 +4,20 @@ header .btn {
 	border-radius: var(--border-radius);
 }
 
+header .btn:hover {
+	filter: brightness(1.2);
+}
+
 .chat-container {
-	max-width: 1100px;
-	height: 480px;
-	background: #fff;
-	margin: 30px auto;
-	overflow: hidden;
-	border-radius: var(--border-radius);
-	min-width: 750px;
-	box-shadow: 5px 8px 10px #85a2af45;
+	width: 80%;
+    height: 480px;
+    background: #fff;
+    margin: 30px auto;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    min-width: 750px;
+    max-width: 1000px;
+    box-shadow: 5px 8px 10px #85a2af45;
 }
 
 .chat-header {
@@ -84,6 +89,7 @@ header .btn {
 	margin-bottom: 20px;
 	overflow-y: scroll;
 	height: 296px;
+	scroll-behavior: smooth;
 }
 
 .chat-messages .left {
@@ -240,6 +246,10 @@ header .btn {
 	border-bottom-right-radius: var(--border-radius);
 	border-top-right-radius: var(--border-radius);
 	outline: none;
+}
+
+.chat-form-container .btn:hover {
+	filter: brightness(1.2);
 }
 
 @media (max-width: 700px) {

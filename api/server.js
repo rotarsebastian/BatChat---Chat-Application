@@ -138,8 +138,8 @@ io.on('connection', socket => {
         console.log('USER DISCONNECTED');
         globalVersion++;
         const user = userLeave(socket.id);
-        touchedRoom = user.room;
         if(user) {
+            touchedRoom = user.room;
             const response = await removeRoomMember(user.room, user.username);
             if(response.status === 1) {
                 io.to(user.room).emit('message', formatMessage(socket.id, botName, `${user.username} ${leftChatMessage}`, true));
