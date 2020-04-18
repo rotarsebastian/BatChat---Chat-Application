@@ -6,6 +6,7 @@ import { DebounceInput } from 'react-debounce-input';
 import classes from './Rooms.module.css';
 import RoomListElement from '../../components/RoomListElement/RoomListElement';
 import CreateNewRoom from '../../components/CreateNewRoom/CreateNewRoom';
+import ClipLoader from "react-spinners/ClipLoader";
 
 class Rooms extends Component {
 
@@ -24,6 +25,7 @@ class Rooms extends Component {
         loadedItems: null,
         showCreateRoom: false,
         animateHideCreateRoom: false,
+        removingRoom: false,
         endpoint: 'http://127.0.0.1:9000',
     }
 
@@ -65,7 +67,10 @@ class Rooms extends Component {
                                     const foundRoomIndex = newRooms.findIndex(room => room.name === touchedRoom.name);
                                     if(foundRoomIndex !== -1) {
                                         newRooms.splice(foundRoomIndex, 1);
-                                        this.setState({ rooms: newRooms, loadedItems: loadedItems - 1 });
+                                        this.setState({ removingRoom: touchedRoom.name });
+                                        setTimeout(() => {
+                                            this.setState({ rooms: newRooms, loadedItems: loadedItems - 1, removingRoom: false });
+                                        }, 500);
                                     }
                                 } else {
                                     const foundRoomIndex = rooms.findIndex(room => room.name === touchedRoom.name);
@@ -96,6 +101,7 @@ class Rooms extends Component {
             if(res.status === 0) return console.log(res);
             e.target.previousSibling.classList.remove(classes.show);
             this.handleShowCreateRoom();
+            this.roomsContainer.current.scrollTo({top: 0, behavior: 'smooth'});
             this.setState({newRoomName: { val: '', isValid: false }});
         }
     }
@@ -116,12 +122,18 @@ class Rooms extends Component {
 
     handleDeleteRoom = async(e, room) => {
         e.stopPropagation();
-        const { username } = this.state;
-        const token = localStorage.getItem('userToken');
-        if(username === room.createdBy) {
-            const res = await deleteRoom(room, token);
-            if(res.status === 0) return console.log(res);
+        let button = null;
+        if(e.target.tagName === 'I') button = e.target.parentElement;
+            else button = e.target;
+        if(button.disabled === false) {
+            const { username } = this.state;
+            const token = localStorage.getItem('userToken');
+            if(username === room.createdBy) {
+                const res = await deleteRoom(room, token);
+                if(res.status === 0) return console.log(res);
+            }
         }
+        button.disabled = true;
     }
 
     handleInputChange = async(e) => {
@@ -195,8 +207,8 @@ class Rooms extends Component {
     }
 
     render () {
-        let { rooms, newRoomName, searchValue, searchedRooms, username, showCreateRoom, animateHideCreateRoom } = this.state;
-        if(rooms === null) return <div>SPINNNNER</div>;
+        let { rooms, newRoomName, searchValue, searchedRooms, username, showCreateRoom, animateHideCreateRoom, removingRoom } = this.state;
+        if(rooms === null) return (<div className={classes['rooms-spinner']}><ClipLoader size={50} color={"#fff"} /></div>);
         if(searchedRooms !== null) rooms = searchedRooms;
         return (
             <div className={classes.Rooms}>
@@ -218,7 +230,7 @@ class Rooms extends Component {
                 { showCreateRoom ? <CreateNewRoom animateHideCreateRoom={animateHideCreateRoom} newRoomName={newRoomName} input={this.handleInputChange} createRoom={this.handleCreateRoom} /> : undefined }
                 <div className={classes['rooms-list']} ref={this.roomsContainer}>
                     { rooms.length === 0 ? <div className={classes['rooms-empty']}>No active rooms at the moment!</div> : undefined } 
-                    { rooms.map(room => <RoomListElement deleteRoom={(e) => this.handleDeleteRoom(e, room)} username={username} key={room._id} room={room} joinRoom={() => this.handleJoinRoom(room.name)} />) }
+                    { rooms.map(room => <RoomListElement removingRoom={removingRoom} deleteRoom={(e) => this.handleDeleteRoom(e, room)} username={username} key={room._id} room={room} joinRoom={() => this.handleJoinRoom(room.name)} />) }
                 </div>
             </div>
         );

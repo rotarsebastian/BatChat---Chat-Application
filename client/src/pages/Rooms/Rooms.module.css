@@ -1,3 +1,10 @@
+.rooms-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 .Rooms {
     width: 100%;
     max-width: 58rem;
@@ -33,6 +40,7 @@
     margin: 1rem 0;
     padding: 0 1.3rem;
     margin-top: 2rem;
+    scroll-behavior: smooth;
 }
 
 .Rooms .rooms-empty {
